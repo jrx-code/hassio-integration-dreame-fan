@@ -89,7 +89,7 @@ def connect(did=None, model=None):
     user = os.environ.get("DREAME_USER")
     password = os.environ.get("DREAME_PASS")
     if not user or not password:
-        sys.exit("Set DREAME_USER and DREAME_PASS (see Bitwarden: Dreame account).")
+        sys.exit("Set DREAME_USER and DREAME_PASS (see your password manager).")
 
     protocol = load_protocol()
     cloud = protocol.DreameVacuumDreameHomeCloudProtocol(

@@ -127,9 +127,16 @@ class DreameFanFilterDays(DreameFanEntity, SensorEntity):
 
 
 class DreameFanPropertySensor(DreameFanEntity, SensorEntity):
-    """One still-unidentified MIoT property, shown raw."""
+    """One still-unidentified MIoT property, shown raw.
+
+    Disabled by default: these exist to identify the remaining properties, not
+    for everyday use, and eleven nameless numbers would only clutter a dashboard.
+    Enable the ones you want in the entity registry, watch which moves while you
+    operate the fan, and report what you find.
+    """
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator: DreameFanCoordinator, key: str) -> None:

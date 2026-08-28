@@ -158,7 +158,7 @@ loop of single-property reads run afterwards was knocking on a device that had
 already gone - it was not the cause.
 
 While disconnected the fan broadcast an open provisioning SSID,
-`dreame-fan-u2519_miap3EC0`, whose suffix matches the last four hex digits of
+`dreame-fan-u2519_miapXXXX`, whose suffix matches the last four hex digits of
 its MAC; it stopped once the fan was back. **The network configuration was
 genuinely lost**: the fan did not rejoin by itself, and only returned after the
 owner re-ran the app's connect flow. Device state survived - all 28 properties
