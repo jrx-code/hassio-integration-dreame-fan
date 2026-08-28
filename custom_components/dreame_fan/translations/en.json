@@ -49,9 +49,9 @@
           "preset_mode": {
             "state": {
               "auto": "Auto",
-              "circulate": "Circulate",
-              "sleep": "Sleep",
+              "night": "Night",
               "natural": "Natural",
+              "strong": "Strong",
               "custom": "Custom"
             }
           }

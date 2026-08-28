@@ -46,18 +46,20 @@ SPEED_MAX: Final = 10
 BLADE_LEFT: Final = 1
 BLADE_RIGHT: Final = 2
 
-# Mode values as the app presents them, left to right in its picker.
-MODE_AUTO: Final = 0
-MODE_CIRCULATE: Final = 1
-MODE_SLEEP: Final = 2
-MODE_CUSTOM: Final = 3
-MODE_NATURAL: Final = 7
+# Mode values, left to right in the app's picker, which is also F1-F5 on the
+# remote. Names are the app's own, not invented: Auto, Tryb nocny, Tryb
+# naturalny, Tryb Mocny, Tryb niestandardowy.
+MODE_AUTO: Final = 0        # F1
+MODE_STRONG: Final = 1      # F4
+MODE_NIGHT: Final = 2       # F2
+MODE_CUSTOM: Final = 3      # F5
+MODE_NATURAL: Final = 7     # F3
 
 MODES: Final[dict[int, str]] = {
     MODE_AUTO: "auto",
-    MODE_CIRCULATE: "circulate",
-    MODE_SLEEP: "sleep",
+    MODE_NIGHT: "night",
     MODE_NATURAL: "natural",
+    MODE_STRONG: "strong",
     MODE_CUSTOM: "custom",
 }
 MODE_VALUES: Final[dict[str, int]] = {name: value for value, name in MODES.items()}

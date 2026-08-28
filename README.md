@@ -33,9 +33,11 @@ Working. Everything the device exposes is controllable except power.
 | `sensor` pre-filter remaining | 4.8 | days |
 | `sensor` property N.N | the other 18 | raw, diagnostic, for identifying the rest |
 
-Selecting a mode also moves the speed - sleep drops it to 1, natural to 2,
-circulate to 10, auto and custom to 5. The entity shows the requested speed for
-a few seconds until the next poll reports what the device actually did.
+The five preset modes are the app's own, and line up with F1-F5 on the remote:
+auto, night, natural, strong, custom. Selecting one also moves the speed - night
+drops it to 1, natural to 2, strong to 10, auto varies it - so the entity shows
+the requested speed for a few seconds until the next poll reports what the
+device actually did.
 
 **Power is not wired up.** 2.1 reports the state correctly and immediately, but
 the device rejects every write to it, including the value the app itself
