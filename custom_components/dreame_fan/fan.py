@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import math
 from typing import Any
 
@@ -33,6 +34,11 @@ from .entity import DreameFanEntity
 
 SPEED_RANGE = (SPEED_MIN, SPEED_MAX)
 
+# How long the fan takes to actually start after the scene runs, measured at
+# about five seconds. A speed or mode write sent before that is accepted and
+# discarded, which is worse than waiting.
+POWER_SETTLE_SECONDS = 6
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -45,10 +51,10 @@ async def async_setup_entry(
 class DreameFan(DreameFanEntity, FanEntity, RestoreEntity):
     """The fan itself.
 
-    Power is deliberately not wired up. The device reports its power state in
-    2.1 but refuses every write to it, including the value the app itself
-    produces, while every other control accepts writes. Rather than pretend,
-    turn_on and turn_off say so.
+    Power does not go through the property API: 2.1 refuses every write, in
+    every state, with the same 80001 the app never sees. It goes through a
+    scene instead - see `coordinator.async_set_power` - which the vendor cloud
+    runs on the device in about five seconds.
     """
 
     _attr_name = None
@@ -56,6 +62,8 @@ class DreameFan(DreameFanEntity, FanEntity, RestoreEntity):
         FanEntityFeature.SET_SPEED
         | FanEntityFeature.OSCILLATE
         | FanEntityFeature.PRESET_MODE
+        | FanEntityFeature.TURN_ON
+        | FanEntityFeature.TURN_OFF
     )
     _attr_preset_modes = list(MODE_VALUES)
     _attr_speed_count = SPEED_MAX
@@ -145,10 +153,8 @@ class DreameFan(DreameFanEntity, FanEntity, RestoreEntity):
 
     async def async_set_percentage(self, percentage: int) -> None:
         if percentage == 0:
-            raise HomeAssistantError(
-                "This fan cannot be switched off over the cloud API. Set a speed "
-                "instead, or use the app or the fan's own button."
-            )
+            await self.async_turn_off()
+            return
         if not self.is_on:
             # Verified: the device acknowledges a speed write while off but does
             # not apply it, so reporting success here would be a lie.
@@ -174,16 +180,25 @@ class DreameFan(DreameFanEntity, FanEntity, RestoreEntity):
             PROP_OSCILLATION, 1 if oscillating else 0
         )
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        raise HomeAssistantError(
-            "This fan cannot be switched on over the cloud API. It reports its "
-            "power state but rejects every write to it; use the app or the "
-            "fan's own button."
-        )
+    async def async_turn_on(
+        self,
+        percentage: int | None = None,
+        preset_mode: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Start the fan, then apply anything asked for along with it.
+
+        The speed and mode writes are ordinary property writes, which the fan
+        ignores while it is stopped - so they wait until it has actually
+        started rather than being fired alongside the scene.
+        """
+        if not self.is_on:
+            await self.coordinator.async_set_power(True)
+            await asyncio.sleep(POWER_SETTLE_SECONDS)
+        if preset_mode is not None:
+            await self.async_set_preset_mode(preset_mode)
+        if percentage:
+            await self.async_set_percentage(percentage)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        raise HomeAssistantError(
-            "This fan cannot be switched off over the cloud API. It reports its "
-            "power state but rejects every write to it; use the app or the "
-            "fan's own button."
-        )
+        await self.coordinator.async_set_power(False)

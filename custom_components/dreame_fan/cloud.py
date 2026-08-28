@@ -39,6 +39,11 @@ TOKEN_PATH = "/dreame-auth/oauth/token"
 DEVICE_LIST_PATH = "dreame-user-iot/iotuserbind/device/listV2"
 DEVICE_INFO_PATH = "dreame-user-iot/iotuserbind/device/info"
 PROPS_PATH = "dreame-user-iot/iotstatus/props"
+HOMES_PATH = "dreame-user-iot/smarthome/home"
+SCENE_LIST_PATH = "dreame-user-iot/smarthome/scene/getSceneByHomeV2"
+SCENE_SAVE_PATH = "dreame-user-iot/smarthome/scene/saveOrUpdate"
+SCENE_START_PATH = "dreame-user-iot/smarthome/scene/startSceneAction"
+SCENE_COMMANDS_PATH = "dreame-user-iot/smarthome/scene/action/getDeviceCommand"
 
 REQUEST_TIMEOUT = 15
 
@@ -148,6 +153,32 @@ class DreameHomeCloud:
 
         return response.json()
 
+    def _get(self, path: str, params: dict | None = None) -> Any:
+        """GET flavour of :meth:`_call`.
+
+        The scene endpoints are split across both verbs - listing is a GET and
+        answers ``10002 不支持当前请求方法`` ("request method not supported") to a
+        POST, which is easy to mistake for a bad payload.
+        """
+        if not self._access_token or time.time() > self._expires_at:
+            self.login()
+        headers = self._auth_headers()
+        headers["Dreame-Auth"] = self._access_token
+        try:
+            response = self._session.get(
+                f"{self.api_url}/{path}", headers=headers, params=params,
+                timeout=REQUEST_TIMEOUT,
+            )
+        except requests.RequestException as err:
+            raise DreameCloudError(f"Request to {path} failed: {err}") from err
+        if response.status_code == 401:
+            self._access_token = None
+            self.login()
+            return self._get(path, params)
+        if response.status_code != 200:
+            raise DreameCloudError(f"{path} returned HTTP {response.status_code}")
+        return response.json()
+
     def get_devices(self) -> list[dict]:
         """Every device bound to the account."""
         result = self._call(DEVICE_LIST_PATH)
@@ -207,3 +238,67 @@ class DreameHomeCloud:
             if entry.get("siid") == siid and entry.get("piid") == piid:
                 return entry.get("code") == 0
         return False
+
+
+    # --- scenes: the only way to switch this fan's power ---------------------
+    # The device refuses every write to 2.1 through the RPC (80001, "device did
+    # not acknowledge"), whether it is running or not, while accepting writes to
+    # every other property in the same session. The vendor's app does not use
+    # that path for power: it stores an "on" or "off" action in a scene and asks
+    # the cloud to run it. That works, from a stopped fan, in about five seconds.
+
+    def get_homes(self) -> list[dict]:
+        """Homes on the account; scenes hang off a home, not off a device."""
+        result = self._get(HOMES_PATH)
+        if not result or result.get("code") != 0:
+            raise DreameCloudError(f"Home list failed: {result}")
+        return result["data"]["homes"]
+
+    def get_scenes(self, home_id: str) -> list[dict]:
+        """Every scene of a home, manual and automatic alike."""
+        result = self._get(SCENE_LIST_PATH, {"homeId": home_id})
+        if not result or result.get("code") != 0:
+            raise DreameCloudError(f"Scene list failed: {result}")
+        data = result.get("data") or {}
+        return (data.get("manual") or []) + (data.get("auto") or [])
+
+    def get_scene_commands(self, did: str, model: str) -> list[dict]:
+        """What the cloud says this device can be told to do inside a scene."""
+        result = self._call(SCENE_COMMANDS_PATH, {"did": str(did), "model": model})
+        if not result or result.get("code") != 0:
+            raise DreameCloudError(f"Scene command list failed: {result}")
+        return result.get("data") or []
+
+    def create_manual_scene(
+        self, home_id: str, name: str, did: str, model: str,
+        command_id: str, value: str, action_name: str = "",
+    ) -> None:
+        """Create a manually-triggered scene holding one device command.
+
+        The whole scene goes in one payload. ``saveCommandAction`` looks like
+        the endpoint for this and answers ``code: 0`` to anything, storing
+        nothing - the action has to ride along here, and its key is ``id``,
+        not ``commandId``.
+        """
+        payload = {
+            "homeId": str(home_id),
+            "sceneName": name,
+            "triggerType": "all",
+            "triggerData": [{"dataType": "manual", "detail": []}],
+            "deviceInfo": [{
+                "did": str(did),
+                "model": model,
+                "actionName": action_name or name,
+                "detail": [{"id": str(command_id), "detailType": "enum", "value": str(value)}],
+            }],
+            "dateType": "daily",
+        }
+        result = self._call(SCENE_SAVE_PATH, payload)
+        if not result or result.get("code") != 0:
+            raise DreameCloudError(f"Scene create failed: {result}")
+
+    def start_scene(self, scene_id: str) -> None:
+        """Run a scene's actions now."""
+        result = self._call(SCENE_START_PATH, {"sceneId": str(scene_id)})
+        if not result or result.get("code") != 0:
+            raise DreameCloudError(f"Scene start failed: {result}")
