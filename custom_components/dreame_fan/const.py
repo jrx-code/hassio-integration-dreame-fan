@@ -35,7 +35,12 @@ PROP_DIRECTION_SYNC: Final = "2.9"      # "Synchronizacja kierunku nawiewu", 0 /
 PROP_DIRECTION_ALTERNATE: Final = "2.12"  # "Naprzemienny kierunek nawiewu", 0 / 1
 PROP_TEMPERATURE: Final = "3.2"    # degC; 3.3 carries the same value
 PROP_TEMPERATURE_ALT: Final = "3.3"
-PROP_FILTER_DAYS: Final = "4.8"    # pre-filter days remaining
+PROP_FILTER_PERCENT: Final = "4.7"  # pre-filter life left, percent
+PROP_FILTER_DAYS: Final = "4.8"    # pre-filter days until cleaning
+PROP_MONITORING: Final = "2.15"    # "Ciągłe monitorowanie". Rejects writes.
+PROP_LED_DISPLAY: Final = "6.12"   # "Wyświetlacz LED", 0 / 1
+PROP_KEY_SOUND: Final = "6.17"     # "Dźwięk klawisza", 0 / 1
+PROP_BLADE_SPEED: Final = "6.30"   # "Prędkość łopatek", see BLADE_SPEEDS
 PROP_TIMER_HOURS: Final = "6.8"    # 0 = off
 PROP_CHILD_LOCK: Final = "6.10"    # 0 / 1
 
@@ -47,6 +52,13 @@ SPEED_MAX: Final = 10
 
 BLADE_LEFT: Final = 1
 BLADE_RIGHT: Final = 2
+
+# "Prędkość łopatek" - how fast the blades themselves travel, separate from the
+# 1-10 airflow speed in 2.4.
+BLADE_SPEEDS: Final[dict[int, str]] = {1: "standard", 2: "fast"}
+BLADE_SPEED_VALUES: Final[dict[str, int]] = {
+    name: value for value, name in BLADE_SPEEDS.items()
+}
 
 # Mode values, left to right in the app's picker, which is also F1-F5 on the
 # remote. Names are the app's own, not invented: Auto, Tryb nocny, Tryb
@@ -76,7 +88,12 @@ CONFIRMED_PROPERTIES: Final[dict[str, str]] = {
     PROP_DIRECTION_ALTERNATE: "direction_alternate",
     PROP_TEMPERATURE: "temperature",
     PROP_TEMPERATURE_ALT: "temperature_secondary",
+    PROP_FILTER_PERCENT: "filter_percent",
     PROP_FILTER_DAYS: "filter_days",
+    PROP_MONITORING: "monitoring",
+    PROP_LED_DISPLAY: "led_display",
+    PROP_KEY_SOUND: "key_sound",
+    PROP_BLADE_SPEED: "blade_speed",
     PROP_TIMER_HOURS: "timer_hours",
     PROP_CHILD_LOCK: "child_lock",
 }
@@ -91,7 +108,15 @@ KNOWN_WRITABLE: Final = (
     PROP_DIRECTION_ALTERNATE,
     PROP_TIMER_HOURS,
     PROP_CHILD_LOCK,
+    PROP_LED_DISPLAY,
+    PROP_KEY_SOUND,
+    PROP_BLADE_SPEED,
 )
+
+# Reported correctly but refuse every write through the cloud property API,
+# answering 80001. Both are settable from the app, so this is the API's limit,
+# not the device's.
+READ_ONLY_PROPERTIES: Final = (PROP_POWER, PROP_MONITORING)
 
 # Every property the device answers for, as "<siid>.<piid>". The endpoint does
 # not enumerate, so this list has to be explicit. Discovered by scanning

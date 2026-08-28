@@ -14,6 +14,7 @@ app's own display was checked against the value.
 | key | meaning | values | writable |
 |---|---|---|---|
 | 2.1 | power / running state | 1 = running, 2 = off | **no** - see below |
+| 2.15 | "Ciągłe monitorowanie" | 0 / 1 | **no** - 80001, same as 2.1 |
 | 2.3 | mode | see the mode table below | yes |
 | 2.4 | fan speed | 1-10 | yes, but ignored while the fan is off |
 | 2.7 | oscillation | 0 / 1 | yes |
@@ -22,7 +23,11 @@ app's own display was checked against the value.
 | 2.12 | alternating airflow direction, "Naprzemienny kierunek nawiewu" | 0 / 1 | yes |
 | 3.2 | temperature | degC | not tested |
 | 3.3 | temperature, same value as 3.2 | degC | not tested |
-| 4.8 | pre-filter days remaining | app showed "Pozostało 30 dni" at value 30 | not tested |
+| 4.7 | pre-filter life, percent | app: "Żywotność filtra w 99%" at value 99 | not tested |
+| 4.8 | days until pre-filter cleaning | app: "Szac. pozostało 30 dni do czyszczenia" | not tested |
+| 6.12 | "Wyświetlacz LED" | 0 / 1 | yes |
+| 6.17 | "Dźwięk klawisza" | 0 / 1 | yes |
+| 6.30 | "Prędkość łopatek" | 1 standard, 2 fast | yes |
 | 6.8 | sleep timer | hours, 0 = off | yes |
 | 6.10 | child lock | 0 / 1 | yes |
 
@@ -87,12 +92,28 @@ power button is pressed.
 
 ## Still unidentified
 
-`1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `2.15`, `4.1`, `4.2`, `4.7`, `6.4`,
-`6.7`, `6.11`, `6.12`, `6.17`, `6.30`.
+`1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `4.1`, `4.2`, `6.4`, `6.7`, `6.11`.
 
 App areas not yet exercised, which is where these most likely live: the
 "Wewnątrz / Na zewnątrz" toggle, the "Wygodnie" and "Temperatura" sub-screens,
-and the three-dot settings menu (display, sound, and similar).
+and "Inteligentne ustawienia scen" under the three-dot menu. The rest of that
+settings menu is now accounted for: continuous monitoring, key sound, LED
+display and blade speed.
+
+### Two properties refuse writes, not one
+
+2.1 and 2.15 both answer 80001 to every write through the cloud property API,
+and both are freely toggleable in the app - so this is the API's limit rather
+than the device's. Everything else that was tried accepts writes. 2.15 is
+therefore exposed as a binary sensor, not a switch.
+
+### Identity fields
+
+The app's device-info screen lists model, MAC, S/N, DID, UID, firmware and a
+plugin version. All but two come straight out of `device/info`. **The serial
+only appears in `listV2`** - `device/info` returns `sn: null` - so the
+integration falls back to the device list for it. The plugin version (137) is
+not in the API at all; `extensionId` is 2416, a different number.
 
 `4.7` reads 99 next to `4.8`'s 30, so a filter percentage is plausible - but
 that is a guess, not an observation.

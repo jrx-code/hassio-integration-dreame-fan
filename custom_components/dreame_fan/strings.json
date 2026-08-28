@@ -64,6 +64,9 @@
       },
       "filter_days": {
         "name": "Pre-filter remaining"
+      },
+      "filter_percent": {
+        "name": "Pre-filter life"
       }
     },
     "switch": {
@@ -81,11 +84,31 @@
       },
       "direction_alternate": {
         "name": "Alternating airflow direction"
+      },
+      "led_display": {
+        "name": "LED display"
+      },
+      "key_sound": {
+        "name": "Key sound"
       }
     },
     "number": {
       "timer": {
         "name": "Sleep timer"
+      }
+    },
+    "binary_sensor": {
+      "monitoring": {
+        "name": "Continuous monitoring"
+      }
+    },
+    "select": {
+      "blade_speed": {
+        "name": "Blade speed",
+        "state": {
+          "standard": "Standard",
+          "fast": "Fast"
+        }
       }
     }
   }
