@@ -91,12 +91,38 @@ diff <(jq -S . /tmp/before.json) <(jq -S . /tmp/after.json)
 `tools/experiment.py <did> <siid.piid> <value>` drives a property instead:
 snapshot, write, diff, restore, verify the restore.
 
-## Do not hammer the RPC endpoint
+## Do not fire MIoT actions blind - one took the fan off the network
 
-Probing `sendCommand` in a tight loop - roughly thirty single-property reads a
-few seconds apart - took the fan off Wi-Fi entirely. The UDM stopped listing it
-as a client, the cloud reported `online: false`, property reporting stopped, and
-the app showed "Offline". It did not return on its own within eleven minutes.
+Probing actions on siid 2 took the fan off Wi-Fi for roughly twenty-five
+minutes. The timeline, from the cloud responses and the UDM's client table:
 
-Keep RPC traffic sparse: batch writes, leave seconds between commands, and use
-the REST property store for reads, which never caused this.
+| time | event |
+|---|---|
+| 16:24:21 | last healthy full property read, everything nominal |
+| ~16:27 | `action siid=2 aiid=1` -> code 0 |
+| ~16:27 | `action siid=2 aiid=2` -> code 0, **the last command the device ever acknowledged** |
+| immediately after | every further RPC returns 80001 |
+| 16:29:57 | the device drops its Wi-Fi association |
+| ~16:56 | back on Wi-Fi, cloud online, all 28 properties at their pre-failure values |
+
+Neither action changed any property, so nothing was gained. `aiid` 3-8 do not
+exist. Note that the RPC channel died *before* the Wi-Fi association dropped,
+and that a tight loop of single-property reads run afterwards was knocking on a
+device that had already gone - it was not the cause.
+
+While disconnected the fan broadcast an open provisioning SSID,
+`dreame-fan-u2519_miap3EC0`, whose suffix matches the last four hex digits of
+its MAC. That AP disappeared once it rejoined. **It is a fallback the device
+raises when it loses its connection, not evidence that its Wi-Fi credentials
+were cleared** - the credentials survived, since it came back to the original
+SSID by itself with all state intact.
+
+What this does not establish is which of the two actions was responsible, or
+what either of them does. Both returned code 0 and changed nothing observable.
+Do not fire them again to find out.
+
+## Keep RPC traffic sparse
+
+Reads go through the REST property store, which never caused trouble at any
+rate. Reserve the RPC channel for writes, batch them, and leave seconds between
+commands.
