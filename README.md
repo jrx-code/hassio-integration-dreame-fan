@@ -5,44 +5,60 @@ Home Assistant integration for the **Dreame MF10** bladeless circulation fan
 
 ## Status
 
-Early - recon done, no working integration yet.
+Working, but the device's properties are not identified yet, so there is no
+`fan` entity: every property is exposed raw so that it can be identified.
 
 - [x] Identify the device and how it is reachable (`docs/recon-2026-08-28.md`)
-- [x] Standalone cloud prober that logs in and reads live properties (`tools/probe.py`)
-- [x] First property scan: 28 live keys (`docs/miot-properties.md`)
-- [ ] Identify what each property means, by diffing scans against app actions
-- [ ] Verify writes (`set_batch_device_datas`) actually drive the fan
-- [ ] Cloud client + coordinator inside `custom_components/dreame_fan`
-- [ ] Config flow (account, region, device pick)
-- [ ] `fan` entity: power, 10 speed steps, 3 modes, oscillation
-- [ ] Sensors: temperature, wifi, whatever the scan turns out to expose
-- [ ] Install on HA and add to the room dashboard
+- [x] Standalone cloud client, no dependency on other integrations (`cloud.py`)
+- [x] Config flow: account, region, pick the fan
+- [x] 28 raw property sensors, polled every 30s
+- [x] `dreame_fan.set_property` service for writing a raw property
+- [x] Brand icon, taken from the Dreame Vacuum brand
+- [x] Verified on the dev instance (VM103, HA 2026.7.4)
+- [ ] Identify what each property means (`docs/miot-properties.md`)
+- [ ] `fan` entity: power, speed, modes, oscillation
+- [ ] Sensors with real names, units and device classes
 
 ## Approach
 
 The MF10 is not a Mi Home device and has no MIoT spec. It lives on the Dreame
-Home cloud (`*.mt.eu.iot.dreame.tech`), the same API the Dreame robot vacuums
-use, so the protocol work in
-[Tasshack/dreame-vacuum](https://github.com/Tasshack/dreame-vacuum) applies
-directly - a local checkout sits at `~/CodeHub/hassio/dreame-vacuum`.
+Home cloud, the same API the Dreame robot vacuums use, so the protocol work in
+[Tasshack/dreame-vacuum](https://github.com/Tasshack/dreame-vacuum) applies -
+though `cloud.py` reimplements the handful of endpoints a fan needs rather than
+depending on that integration being installed.
 
-Local control was not pursued: the device is cloud-bound with no miIO token, and
-`scType` is `WIFI_BLE`. A local BLE path is unexplored.
+Two findings shape the design, both documented in `docs/cloud-api.md`:
 
-## Probing
+* The device RPC returns **wrong values for some properties while reporting
+  success**, so state is read only through the cloud's REST property store.
+* The REST store **lags an acknowledged write by 35-50 seconds**, so an
+  accepted write is applied optimistically and reconciled by a later poll.
+
+Local control was not pursued: the device is cloud-bound with no miIO token.
+A local BLE path is unexplored.
+
+## Identifying the properties
+
+This is the open work, and it needs eyes on the device. Every property appears
+as `sensor.<device>_property_<siid>_<piid>`. Operate the fan one control at a
+time and watch which entity moves. See `docs/miot-properties.md` for the table
+to fill in and for the command-line equivalent.
+
+## Probing outside Home Assistant
 
 ```bash
 export BW_SESSION=$(bw unlock --raw)
 export DREAME_USER=account@example.com
 export DREAME_PASS=$(bw get password "Dreame account")
 
-tools/probe.py list                # devices on the account
-tools/probe.py scan -117222980     # full property scan of the MF10
-tools/probe.py get -117222980 3.2,3.3
+tools/probe.py list                      # devices on the account
+tools/probe.py scan -117222980           # full property scan
+tools/experiment.py -117222980 2.4 8     # write, diff, restore, verify
 ```
 
-The prober imports the protocol from `~/CodeHub/hassio/dreame-vacuum`; point
-`DREAME_VACUUM_LIB` elsewhere if that checkout moves.
+`probe.py` imports the protocol from `~/CodeHub/hassio/dreame-vacuum`; point
+`DREAME_VACUUM_LIB` elsewhere if that checkout moves. `experiment.py` uses this
+integration's own `cloud.py` and needs nothing else.
 
 ## Credentials
 

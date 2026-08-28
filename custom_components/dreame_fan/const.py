@@ -4,21 +4,45 @@ from typing import Final
 
 DOMAIN: Final = "dreame_fan"
 
-# Supported cloud model. dreame.fan.u2519 is the Dreame Bladeless Fan MF10;
-# it has no published MIoT spec, so the property map below was discovered by
-# scanning the Dreame Home cloud API (see tools/probe.py and docs/).
+# dreame.fan.u2519 is the Dreame Bladeless Fan MF10. It has no published MIoT
+# spec, so the property list below was discovered by scanning the cloud API;
+# see docs/miot-properties.md.
 MODEL_MF10: Final = "dreame.fan.u2519"
 SUPPORTED_MODELS: Final = (MODEL_MF10,)
 
 CONF_COUNTRY: Final = "country"
 CONF_DID: Final = "did"
-CONF_AUTH_KEY: Final = "auth_key"
 
 DEFAULT_COUNTRY: Final = "eu"
+COUNTRIES: Final = ("eu", "de", "us", "cn")
 
-# Property keys are "<siid>.<piid>" strings, the format the cloud API expects.
-# Only the ones whose meaning has been confirmed by observation are named here.
-# The full scan, including the still-unidentified keys, lives in
-# docs/miot-properties.md - move a key here once its semantics are verified.
-PROP_UNKNOWN_TEMPERATURE_A: Final = "3.2"
-PROP_UNKNOWN_TEMPERATURE_B: Final = "3.3"
+UPDATE_INTERVAL_SECONDS: Final = 30
+
+# The cloud's cached property view lags an acknowledged write: measured between
+# 35 and 50 seconds on 2.4. Reading back sooner returns the old value, so an
+# accepted write is applied optimistically and reconciled by a later poll.
+WRITE_RECONCILE_SECONDS: Final = 60
+
+# Every property the device answers for, as "<siid>.<piid>". The endpoint does
+# not enumerate, so this list has to be explicit. Discovered by scanning
+# siid 1-15 x piid 1-30; everything outside this set returned nothing.
+PROPERTY_KEYS: Final = (
+    "1.8",
+    "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
+    "2.10", "2.11", "2.12", "2.15",
+    "3.2", "3.3",
+    "4.1", "4.2", "4.7", "4.8",
+    "6.4", "6.7", "6.8", "6.10", "6.11", "6.12", "6.17", "6.30",
+)
+
+# Properties whose meaning has been established by observation go here, and get
+# a real entity instead of a raw diagnostic sensor. Nothing has been confirmed
+# yet: a snapshot of numbers is not evidence of what a number is.
+CONFIRMED_PROPERTIES: Final[dict[str, str]] = {}
+
+# Writes that the device accepted, verified by reading the value back.
+KNOWN_WRITABLE: Final = ("2.4",)
+
+SERVICE_SET_PROPERTY: Final = "set_property"
+ATTR_PROPERTY: Final = "property"
+ATTR_VALUE: Final = "value"
