@@ -2,88 +2,84 @@
 
 No public MIoT spec exists: `https://home.miot-spec.com/spec/dreame.fan.u2519`
 returns 404, and the `dreame.fan.*` models listed on miot-spec are the older
-p19xx/p20xx Mijia purifying fans, not this one. The map below therefore comes
-from probing the Dreame Home cloud API.
+p19xx/p20xx Mijia purifying fans. The map below was established on 2026-08-28 by
+driving the fan from the Dreamehome app over ADB and watching which value moved,
+one control at a time.
 
-Reproduce with:
+## Confirmed
 
-```bash
-export DREAME_USER=account@example.com DREAME_PASS=...   # Bitwarden: "Dreame account"
-tools/probe.py scan -117222980
-```
+Each of these was observed changing in response to exactly one control, and the
+app's own display was checked against the value.
 
-## Raw scan, 2026-08-28
-
-Scan range siid 1-15, piid 1-30. 28 keys returned a non-null value; every other
-key in the range returned nothing, which is the API's way of saying the property
-does not exist.
-
-| key | value | writable | meaning |
+| key | meaning | values | writable |
 |---|---|---|---|
-| 1.8 | 0 | ? | unidentified |
-| 2.1 | 1 | no (write times out) | unidentified |
-| 2.2 | 0 | ? | unidentified |
-| 2.3 | 3 | ? | unidentified |
-| 2.4 | 5 | **yes, verified** | unidentified |
-| 2.5 | 0 | ? | unidentified |
-| 2.6 | 3 | ? | unidentified |
-| 2.7 | 0 | ? | unidentified |
-| 2.8 | 0 | ? | unidentified |
-| 2.9 | 0 | ? | unidentified |
-| 2.10 | 1 | ? | unidentified |
-| 2.11 | 1 | ? | unidentified |
-| 2.12 | 0 | ? | unidentified |
-| 2.15 | 1 | ? | unidentified |
-| 3.2 | 26-27 | ? | unidentified, drifts |
-| 3.3 | 26-27 | ? | unidentified, drifts |
-| 4.1 | 100 | ? | unidentified |
-| 4.2 | 180 | ? | unidentified |
-| 4.7 | 99 | ? | unidentified |
-| 4.8 | 30 | ? | unidentified |
-| 6.4 | 0 | ? | unidentified |
-| 6.7 | 1 | ? | unidentified |
-| 6.8 | 0 | ? | unidentified |
-| 6.10 | 0 | ? | unidentified |
-| 6.11 | 1 | ? | unidentified |
-| 6.12 | 0-1 | ? | unidentified, has changed |
-| 6.17 | 1 | ? | unidentified |
-| 6.30 | 1 | ? | unidentified |
+| 2.1 | power / running state | 1 = running, 2 = off | **no** - see below |
+| 2.3 | mode | 0 auto, 1 circulate, 2 sleep, 3 custom, 7 natural | yes |
+| 2.4 | fan speed | 1-10 | yes, but ignored while the fan is off |
+| 2.7 | oscillation | 0 / 1 | yes |
+| 2.8 | active blades, bitmask | 1 left, 2 right, 3 both | yes |
+| 3.2 | temperature | degC | not tested |
+| 3.3 | temperature, same value as 3.2 | degC | not tested |
+| 4.8 | pre-filter days remaining | app showed "Pozostało 30 dni" at value 30 | not tested |
+| 6.8 | sleep timer | hours, 0 = off | yes |
+| 6.10 | child lock | 0 / 1 | yes |
 
-Nothing is labelled with a meaning yet, because nothing has been observed at
-the device. Reading numbers establishes that a property exists and how it
-behaves; it does not establish what it controls.
+Notes on the confirmations:
 
-### What writing established
+* **Mode and speed are coupled.** Selecting a mode also sets the speed: sleep
+  drops 2.4 to 1, natural to 2, circulate to 10, auto and custom to 5.
+* **Temperature is real, not a coincidence.** 3.2 and 3.3 always carry the same
+  number and always move together. Switching the fan off made both climb
+  26 -> 27 -> 28; switching it back on made them fall 29 -> 28 -> 27 within
+  twenty seconds. Nothing observed so far distinguishes 3.2 from 3.3.
+* **Blades are a bitmask**, verified in both directions: turning the left blade
+  off took 3 -> 2, back on 2 -> 3, then turning the right blade off took 3 -> 1.
 
-* **2.4 is writable.** Values 7, 8 and 9 were each accepted and read back, then
-  restored to the original 5. Whether it is the speed step is still a guess.
-* **2.1 is not writable through this path.** Writes of both `0` (int) and
-  `false` (bool) come back as cloud error 80001, "device may be offline,
-  command timed out". The value stayed at 1 throughout, so nothing was left in
-  a changed state. 80001 means "not delivered", not "rejected", so this is not
-  proof that the property is read-only.
+## Power cannot be written, and the mechanism is not known
 
-### Open hypotheses (unverified)
+`2.1` reports power correctly and immediately, but every attempt to write it
+failed, with the value unchanged each time:
 
-Guesses to test, not findings:
+* `value: 0` and `value: false` - cloud error 80001 (not delivered)
+* `value: 2`, the value the app itself produces - acknowledged by the cloud, but
+  the response carried results for piid 0 and piid 3 rather than piid 1, and
+  2.1 stayed at 1
+* `value: "2"` as a string, a batch alongside a known-good 2.4 write, `did` sent
+  as `"2.1"`, and `did` sent as an integer - all rejected or ignored
 
-- `3.2` / `3.3` read the same value and both moved 26 -> 27 during the session.
-  Something they track drifts. The fan advertises TempSync, so ambient
-  temperature in degC would fit, but two equal values could equally be a
-  current/target pair or one sensor exposed twice.
-- `2.4` sat at 5, in the middle of the product's advertised 10 speed steps, and
-  accepts 7-9.
-- `4.7` = 99 and `4.8` = 30 look like a percentage and an hours counter.
+Meanwhile 2.3, 2.4, 2.7, 2.8, 6.8 and 6.10 all accept writes and read back
+correctly, so the write path itself works; 2.1 is specifically refused.
 
-## Identifying the rest
+MIoT actions were probed on siid 2: `aiid` 1 and 2 exist and return code 0,
+`aiid` 3-8 do not exist. Neither existing action changed any property.
+
+Setting speed or mode while the fan is off does not wake it. Mode does apply
+while off; speed does not.
+
+**Unresolved.** A fan entity can expose everything except on/off until this is
+answered. The remaining lead is to capture what the app actually sends when its
+power button is pressed.
+
+## Still unidentified
+
+`1.8`, `2.2`, `2.5`, `2.6`, `2.9`, `2.10`, `2.11`, `2.12`, `2.15`, `4.1`, `4.2`,
+`4.7`, `6.4`, `6.7`, `6.11`, `6.12`, `6.17`, `6.30`.
+
+App areas not yet exercised, which is where these most likely live: the
+"Wewnątrz / Na zewnątrz" toggle, the "Wygodnie" and "Temperatura" sub-screens,
+the link and shuffle icons in the circulation card, and the three-dot settings
+menu (display, sound, and similar).
+
+`4.7` reads 99 next to `4.8`'s 30, so a filter percentage is plausible - but
+that is a guess, not an observation.
+
+## Method
 
 Every property is exposed in Home Assistant as
-`sensor.<device>_property_<siid>_<piid>`, so the fastest route is to watch the
-entities while operating the fan by hand or from the Dreamehome app, one
-control at a time: power, each speed, each of the 3 modes, oscillation, tilt,
-timer, child lock, display, sound.
+`sensor.<device>_property_<siid>_<piid>`, so the quickest route is to watch the
+entities while operating the fan one control at a time.
 
-The same diff can be done without Home Assistant:
+Without Home Assistant:
 
 ```bash
 tools/probe.py scan -117222980 > /tmp/before.json
@@ -92,8 +88,15 @@ tools/probe.py scan -117222980 > /tmp/after.json
 diff <(jq -S . /tmp/before.json) <(jq -S . /tmp/after.json)
 ```
 
-To drive a property instead, `tools/experiment.py <did> <siid.piid> <value>`
-snapshots, writes, diffs, restores and verifies the restore.
+`tools/experiment.py <did> <siid.piid> <value>` drives a property instead:
+snapshot, write, diff, restore, verify the restore.
 
-Record the key, its range and its enum mapping here, then promote it to
-`CONFIRMED_PROPERTIES` in `const.py` so it gets a real entity.
+## Do not hammer the RPC endpoint
+
+Probing `sendCommand` in a tight loop - roughly thirty single-property reads a
+few seconds apart - took the fan off Wi-Fi entirely. The UDM stopped listing it
+as a client, the cloud reported `online: false`, property reporting stopped, and
+the app showed "Offline". It did not return on its own within eleven minutes.
+
+Keep RPC traffic sparse: batch writes, leave seconds between commands, and use
+the REST property store for reads, which never caused this.

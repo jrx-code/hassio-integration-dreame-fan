@@ -5,8 +5,8 @@ from typing import Final
 DOMAIN: Final = "dreame_fan"
 
 # dreame.fan.u2519 is the Dreame Bladeless Fan MF10. It has no published MIoT
-# spec, so the property list below was discovered by scanning the cloud API;
-# see docs/miot-properties.md.
+# spec; the property map was established by driving the fan from the Dreamehome
+# app and watching which value moved. See docs/miot-properties.md.
 MODEL_MF10: Final = "dreame.fan.u2519"
 SUPPORTED_MODELS: Final = (MODEL_MF10,)
 
@@ -18,10 +18,72 @@ COUNTRIES: Final = ("eu", "de", "us", "cn")
 
 UPDATE_INTERVAL_SECONDS: Final = 30
 
-# The cloud's cached property view lags an acknowledged write: measured between
-# 35 and 50 seconds on 2.4. Reading back sooner returns the old value, so an
-# accepted write is applied optimistically and reconciled by a later poll.
+# The cloud's cached property view lags an acknowledged write. Changes made from
+# the app appear within about 5 seconds, but writes issued here have taken up to
+# 50. An accepted write is applied optimistically and reconciled by a later poll.
 WRITE_RECONCILE_SECONDS: Final = 60
+
+# --- confirmed properties -------------------------------------------------
+# Each was established by changing exactly one control and observing the value.
+
+PROP_POWER: Final = "2.1"          # 1 = running, 2 = off. Rejects writes.
+PROP_MODE: Final = "2.3"           # see MODES
+PROP_SPEED: Final = "2.4"          # 1-10; not writable while the fan is off
+PROP_OSCILLATION: Final = "2.7"    # 0 / 1
+PROP_BLADES: Final = "2.8"         # bitmask: 1 = left, 2 = right, 3 = both
+PROP_TEMPERATURE: Final = "3.2"    # degC; 3.3 carries the same value
+PROP_TEMPERATURE_ALT: Final = "3.3"
+PROP_FILTER_DAYS: Final = "4.8"    # pre-filter days remaining
+PROP_TIMER_HOURS: Final = "6.8"    # 0 = off
+PROP_CHILD_LOCK: Final = "6.10"    # 0 / 1
+
+POWER_ON: Final = 1
+POWER_OFF: Final = 2
+
+SPEED_MIN: Final = 1
+SPEED_MAX: Final = 10
+
+BLADE_LEFT: Final = 1
+BLADE_RIGHT: Final = 2
+
+# Mode values as the app presents them, left to right in its picker.
+MODE_AUTO: Final = 0
+MODE_CIRCULATE: Final = 1
+MODE_SLEEP: Final = 2
+MODE_CUSTOM: Final = 3
+MODE_NATURAL: Final = 7
+
+MODES: Final[dict[int, str]] = {
+    MODE_AUTO: "auto",
+    MODE_CIRCULATE: "circulate",
+    MODE_SLEEP: "sleep",
+    MODE_NATURAL: "natural",
+    MODE_CUSTOM: "custom",
+}
+MODE_VALUES: Final[dict[str, int]] = {name: value for value, name in MODES.items()}
+
+CONFIRMED_PROPERTIES: Final[dict[str, str]] = {
+    PROP_POWER: "power",
+    PROP_MODE: "mode",
+    PROP_SPEED: "speed",
+    PROP_OSCILLATION: "oscillation",
+    PROP_BLADES: "blades",
+    PROP_TEMPERATURE: "temperature",
+    PROP_TEMPERATURE_ALT: "temperature_secondary",
+    PROP_FILTER_DAYS: "filter_days",
+    PROP_TIMER_HOURS: "timer_hours",
+    PROP_CHILD_LOCK: "child_lock",
+}
+
+# Writes verified accepted and read back, then restored.
+KNOWN_WRITABLE: Final = (
+    PROP_MODE,
+    PROP_SPEED,
+    PROP_OSCILLATION,
+    PROP_BLADES,
+    PROP_TIMER_HOURS,
+    PROP_CHILD_LOCK,
+)
 
 # Every property the device answers for, as "<siid>.<piid>". The endpoint does
 # not enumerate, so this list has to be explicit. Discovered by scanning
@@ -34,14 +96,6 @@ PROPERTY_KEYS: Final = (
     "4.1", "4.2", "4.7", "4.8",
     "6.4", "6.7", "6.8", "6.10", "6.11", "6.12", "6.17", "6.30",
 )
-
-# Properties whose meaning has been established by observation go here, and get
-# a real entity instead of a raw diagnostic sensor. Nothing has been confirmed
-# yet: a snapshot of numbers is not evidence of what a number is.
-CONFIRMED_PROPERTIES: Final[dict[str, str]] = {}
-
-# Writes that the device accepted, verified by reading the value back.
-KNOWN_WRITABLE: Final = ("2.4",)
 
 SERVICE_SET_PROPERTY: Final = "set_property"
 ATTR_PROPERTY: Final = "property"
