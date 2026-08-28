@@ -38,6 +38,10 @@
         "value": {
           "name": "Value",
           "description": "Integer value to write."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "The Dreame fan to write to."
         }
       }
     }
