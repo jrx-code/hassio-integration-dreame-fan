@@ -1,0 +1,45 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dreamehome account",
+        "description": "Sign in with the Dreamehome account the fan is paired to.",
+        "data": {
+          "username": "Email",
+          "password": "Password",
+          "country": "Region"
+        }
+      },
+      "device": {
+        "title": "Select fan",
+        "data": {
+          "did": "Fan"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the Dreame cloud.",
+      "invalid_auth": "The Dreamehome cloud rejected these credentials."
+    },
+    "abort": {
+      "already_configured": "This fan is already set up.",
+      "no_supported_devices": "No supported fan is bound to this account."
+    }
+  },
+  "services": {
+    "set_property": {
+      "name": "Set property",
+      "description": "Write a raw MIoT property to the fan. Used to identify what the device's unnamed properties do.",
+      "fields": {
+        "property": {
+          "name": "Property",
+          "description": "Property key as siid.piid, for example 2.4."
+        },
+        "value": {
+          "name": "Value",
+          "description": "Integer value to write."
+        }
+      }
+    }
+  }
+}

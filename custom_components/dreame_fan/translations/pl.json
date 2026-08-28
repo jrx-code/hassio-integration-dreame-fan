@@ -1,0 +1,45 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konto Dreamehome",
+        "description": "Zaloguj się kontem Dreamehome, z którym sparowany jest wentylator.",
+        "data": {
+          "username": "E-mail",
+          "password": "Hasło",
+          "country": "Region"
+        }
+      },
+      "device": {
+        "title": "Wybierz wentylator",
+        "data": {
+          "did": "Wentylator"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Brak połączenia z chmurą Dreame.",
+      "invalid_auth": "Chmura Dreamehome odrzuciła te dane logowania."
+    },
+    "abort": {
+      "already_configured": "Ten wentylator jest już skonfigurowany.",
+      "no_supported_devices": "Na tym koncie nie ma obsługiwanego wentylatora."
+    }
+  },
+  "services": {
+    "set_property": {
+      "name": "Ustaw właściwość",
+      "description": "Zapisuje surową właściwość MIoT do wentylatora. Służy do ustalania, co robią nienazwane właściwości urządzenia.",
+      "fields": {
+        "property": {
+          "name": "Właściwość",
+          "description": "Klucz w formacie siid.piid, na przykład 2.4."
+        },
+        "value": {
+          "name": "Wartość",
+          "description": "Liczba całkowita do zapisania."
+        }
+      }
+    }
+  }
+}

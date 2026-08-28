@@ -1,0 +1,18 @@
+set_property:
+  target:
+    device:
+      integration: dreame_fan
+  fields:
+    property:
+      required: true
+      example: "2.4"
+      selector:
+        text:
+    value:
+      required: true
+      example: 8
+      selector:
+        number:
+          min: 0
+          max: 65535
+          mode: box
