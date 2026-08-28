@@ -49,6 +49,9 @@
       },
       "filter_days": {
         "name": "Filtr wstępny, pozostało"
+      },
+      "filter_percent": {
+        "name": "Żywotność filtra wstępnego"
       }
     },
     "switch": {
@@ -66,6 +69,12 @@
       },
       "direction_alternate": {
         "name": "Naprzemienny kierunek nawiewu"
+      },
+      "led_display": {
+        "name": "Wyświetlacz LED"
+      },
+      "key_sound": {
+        "name": "Dźwięk klawisza"
       }
     },
     "number": {
@@ -85,6 +94,20 @@
               "custom": "Tryb niestandardowy"
             }
           }
+        }
+      }
+    },
+    "binary_sensor": {
+      "monitoring": {
+        "name": "Ciągłe monitorowanie"
+      }
+    },
+    "select": {
+      "blade_speed": {
+        "name": "Prędkość łopatek",
+        "state": {
+          "standard": "Standardowy",
+          "fast": "Szybki"
         }
       }
     }

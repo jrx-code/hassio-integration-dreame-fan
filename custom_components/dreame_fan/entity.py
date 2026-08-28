@@ -25,5 +25,6 @@ class DreameFanEntity(CoordinatorEntity[DreameFanCoordinator]):
             model_id=raw.get("model"),
             name=raw.get("customName") or info.get("displayName") or "Dreame Fan",
             sw_version=raw.get("ver"),
+            serial_number=raw.get("sn"),
             connections={("mac", raw["mac"])} if raw.get("mac") else set(),
         )

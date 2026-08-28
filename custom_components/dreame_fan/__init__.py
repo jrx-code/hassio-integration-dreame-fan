@@ -23,7 +23,9 @@ from .const import (
 from .coordinator import DreameFanCoordinator
 
 PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
     Platform.FAN,
+    Platform.SELECT,
     Platform.NUMBER,
     Platform.SENSOR,
     Platform.SWITCH,
@@ -52,6 +54,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: DreameFanConfigEntry) ->
     try:
         await hass.async_add_executor_job(cloud.login)
         device_info = await hass.async_add_executor_job(cloud.get_device_info, did)
+        # device/info returns sn as null; the serial only appears in the device
+        # list, so pull it from there when the info call did not carry one.
+        if not device_info.get("sn"):
+            devices = await hass.async_add_executor_job(cloud.get_devices)
+            for device in devices:
+                if str(device.get("did")) == str(did) and device.get("sn"):
+                    device_info["sn"] = device["sn"]
+                    break
     except DreameAuthError as err:
         raise ConfigEntryAuthFailed(str(err)) from err
     except DreameCloudError as err:

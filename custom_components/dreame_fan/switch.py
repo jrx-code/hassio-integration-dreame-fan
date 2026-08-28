@@ -17,6 +17,8 @@ from .const import (
     PROP_CHILD_LOCK,
     PROP_DIRECTION_ALTERNATE,
     PROP_DIRECTION_SYNC,
+    PROP_KEY_SOUND,
+    PROP_LED_DISPLAY,
 )
 from .coordinator import DreameFanCoordinator
 from .entity import DreameFanEntity
@@ -35,6 +37,8 @@ async def async_setup_entry(
             DreameFanBlade(coordinator, "right", BLADE_RIGHT),
             DreameFanFlag(coordinator, "direction_sync", PROP_DIRECTION_SYNC),
             DreameFanFlag(coordinator, "direction_alternate", PROP_DIRECTION_ALTERNATE),
+            DreameFanFlag(coordinator, "led_display", PROP_LED_DISPLAY),
+            DreameFanFlag(coordinator, "key_sound", PROP_KEY_SOUND),
         ]
     )
 
@@ -104,7 +108,7 @@ class DreameFanBlade(DreameFanEntity, SwitchEntity):
 
 
 class DreameFanFlag(DreameFanEntity, SwitchEntity):
-    """A plain 0/1 property from the air circulation card.
+    """A plain 0/1 property exposed as a switch.
 
     The app offers direction sync and alternating direction as alternatives -
     picking one replaces the other in its UI - but the device accepts both set

@@ -13,7 +13,12 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import EntityCategory, UnitOfTemperature, UnitOfTime
+from homeassistant.const import (
+    PERCENTAGE,
+    EntityCategory,
+    UnitOfTemperature,
+    UnitOfTime,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -22,6 +27,7 @@ from .const import (
     CONFIRMED_PROPERTIES,
     KNOWN_WRITABLE,
     PROP_FILTER_DAYS,
+    PROP_FILTER_PERCENT,
     PROP_TEMPERATURE,
     PROPERTY_KEYS,
 )
@@ -38,6 +44,7 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         DreameFanTemperature(coordinator),
         DreameFanFilterDays(coordinator),
+        DreameFanFilterPercent(coordinator),
     ]
     entities.extend(
         DreameFanPropertySensor(coordinator, key)
@@ -73,8 +80,33 @@ class DreameFanTemperature(DreameFanEntity, SensorEntity):
             return None
 
 
+class DreameFanFilterPercent(DreameFanEntity, SensorEntity):
+    """Pre-filter life left, property 4.7. The app shows it as a percentage."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "filter_percent"
+
+    def __init__(self, coordinator: DreameFanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.did}_filter_percent"
+
+    @property
+    def native_value(self) -> int | None:
+        raw = self.coordinator.data.get(PROP_FILTER_PERCENT)
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return None
+
+
 class DreameFanFilterDays(DreameFanEntity, SensorEntity):
-    """Pre-filter life left, property 4.8, in days."""
+    """Days until the pre-filter needs cleaning, property 4.8.
+
+    The app words it as "Szac. pozostało N dni do czyszczenia" - cleaning, not
+    replacement.
+    """
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTime.DAYS

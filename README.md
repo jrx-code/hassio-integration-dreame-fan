@@ -10,16 +10,16 @@ Working. Everything the device exposes is controllable except power.
 - [x] Identify the device and how it is reachable (`docs/recon-2026-08-28.md`)
 - [x] Standalone cloud client, no dependency on other integrations (`cloud.py`)
 - [x] Config flow: account, region, pick the fan
-- [x] 12 of 28 properties identified (`docs/miot-properties.md`)
+- [x] 17 of 28 properties identified (`docs/miot-properties.md`)
 - [x] `fan` entity: speed 1-10, five modes, oscillation
-- [x] Switches: child lock, the two blades, direction sync, alternating direction
+- [x] Switches: child lock, the two blades, direction sync, alternating direction, LED display, key sound
 - [x] Number: sleep timer
-- [x] Sensors: temperature, pre-filter days, plus the 16 unidentified properties raw
+- [x] Sensors: temperature, pre-filter days, plus the 11 unidentified properties raw
 - [x] `dreame_fan.set_property` service for writing a raw property
 - [x] Brand icon, taken from the Dreame Vacuum brand
 - [x] Verified end to end on the dev instance (VM103, HA 2026.7.4)
 - [ ] Power on/off - the device rejects every write to 2.1
-- [ ] Identify the remaining 16 properties
+- [ ] Identify the remaining 11 properties
 
 ## Entities
 
@@ -32,8 +32,12 @@ Working. Everything the device exposes is controllable except power.
 | `switch` alternating direction | 2.12 | the app's "Naprzemienny kierunek nawiewu" |
 | `number` sleep timer | 6.8 | hours, 0 is off. Upper bound not verified against the device |
 | `sensor` temperature | 3.2 | |
-| `sensor` pre-filter remaining | 4.8 | days |
-| `sensor` property N.N | the other 16 | raw, diagnostic, for identifying the rest |
+| `sensor` pre-filter remaining | 4.8 | days until cleaning |
+| `sensor` pre-filter life | 4.7 | percent |
+| `select` blade speed | 6.30 | standard or fast - the blades' own travel speed, not airflow |
+| `switch` LED display / key sound | 6.12, 6.17 | |
+| `binary_sensor` continuous monitoring | 2.15 | read-only: the API refuses writes to it |
+| `sensor` property N.N | the other 11 | raw, diagnostic, for identifying the rest |
 
 The five preset modes are the app's own, and line up with F1-F5 on the remote:
 auto, night, natural, strong, custom. Selecting one also moves the speed - night
@@ -43,8 +47,9 @@ device actually did.
 
 **Power is not wired up.** 2.1 reports the state correctly and immediately, but
 the device rejects every write to it, including the value the app itself
-produces, while every other control accepts writes. `turn_on` and `turn_off`
-therefore raise an error rather than pretend to work.
+produces. `turn_on` and `turn_off` therefore raise an error rather than pretend
+to work. Continuous monitoring (2.15) behaves the same way and is a read-only
+binary sensor for that reason. Everything else accepts writes.
 
 ## Approach
 
