@@ -26,7 +26,7 @@ WRITE_RECONCILE_SECONDS: Final = 60
 # --- confirmed properties -------------------------------------------------
 # Each was established by changing exactly one control and observing the value.
 
-PROP_POWER: Final = "2.1"          # 1 = running, 2 = off. Rejects writes.
+PROP_POWER: Final = "2.1"          # 1 = running, 2 = off. Rejects writes; see SCENE_* below.
 PROP_MODE: Final = "2.3"           # see MODES
 PROP_SPEED: Final = "2.4"          # 1-10, see the note below; not writable while off
 PROP_OSCILLATION: Final = "2.7"    # 0 / 1
@@ -147,6 +147,27 @@ PROPERTY_KEYS: Final = (
     "4.1", "4.2", "4.7", "4.8",
     "6.4", "6.7", "6.8", "6.10", "6.11", "6.12", "6.17", "6.30",
 )
+
+# --- power, which does not go through the property API at all ---------------
+# 2.1 refuses every write with 80001 ("device did not acknowledge"), running or
+# stopped, in the same session where a write to 6.12 is accepted and read back.
+# The app switches power by running a scene, and the cloud publishes what a
+# scene may tell this device to do (scene/action/getDeviceCommand): command 159
+# "Switch" with the two elements below. Measured 2026-08-28: the fan stops or
+# starts about five seconds after startSceneAction returns.
+SCENE_COMMAND_SWITCH: Final = "159"
+SCENE_VALUE_OFF: Final = "161"
+SCENE_VALUE_ON: Final = "163"
+
+# The scenes this integration creates for itself, one per direction. They are
+# visible in the vendor app; the name carries the device so several fans on one
+# account do not collide.
+SCENE_NAME_ON: Final = "HA {name} ON"
+SCENE_NAME_OFF: Final = "HA {name} OFF"
+
+CONF_HOME_ID: Final = "home_id"
+CONF_SCENE_ON: Final = "scene_on"
+CONF_SCENE_OFF: Final = "scene_off"
 
 SERVICE_SET_PROPERTY: Final = "set_property"
 ATTR_PROPERTY: Final = "property"

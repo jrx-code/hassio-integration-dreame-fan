@@ -34,16 +34,10 @@ cover the robot vacuums only.
 
 ## What does not work
 
-**Power on/off.** The fan reports its power state correctly and instantly, but
-refuses every write to that property through the cloud API - including the exact
-value the vendor's own app produces. Every other control accepts writes, so this
-is specific to that one property. Rather than pretend, `turn_on` and
-`turn_off` raise an error telling you to use the app or the fan's button.
-
-Continuous monitoring behaves identically and is therefore a read-only binary
-sensor rather than a switch.
-
-If you know how the app drives power on this device, please open an issue.
+Continuous monitoring (2.15) refuses every write with `80001`, exactly as power
+did, and is therefore a read-only binary sensor rather than a switch. Power
+itself now works, through a different mechanism - see
+[Power, and why it goes through a scene](#power-and-why-it-goes-through-a-scene).
 
 ## Installation
 
@@ -74,7 +68,7 @@ cloud integration.
 
 | Entity | Property | Notes |
 |---|---|---|
-| `fan` | 2.1, 2.3, 2.4, 2.7 | speed, preset mode, oscillation |
+| `fan` | 2.1, 2.3, 2.4, 2.7 | power (via scenes), speed, preset mode, oscillation |
 | `switch` left / right blade | 2.8 | one bitmask; each switch preserves the other's bit |
 | `switch` airflow direction sync | 2.9 | |
 | `switch` alternating airflow direction | 2.12 | |
@@ -129,6 +123,42 @@ command-line equivalent that needs no Home Assistant.
 There is also a `dreame_fan.set_property` service for writing a raw property
 by `siid.piid`, which is how the writable ones were confirmed.
 
+## Power, and why it goes through a scene
+
+Property 2.1 reports power correctly and instantly, and refuses every write to
+it: `80001`, *device did not acknowledge*, whether the fan is running or
+stopped, in the same session and against the same gateway where a write to 6.12
+is accepted and read back a second later. Value, type, batching and a second
+`did` make no difference.
+
+The vendor's app does not write that property either. It runs a **scene**. The
+cloud publishes what a scene may tell a given device to do:
+
+```
+POST /dreame-user-iot/smarthome/scene/action/getDeviceCommand  {"did": ..., "model": ...}
+  157  Speed   range 1-10
+  159  Switch  enum -> 161 Off, 163 On
+  165  Mode    enum -> 167 AI Purify, 169 Turbo, 171 Sleep, 173 Natural
+```
+
+So this integration keeps two scenes of its own, `HA <device> ON` and
+`HA <device> OFF`, creates them on first use and runs them with
+`smarthome/scene/startSceneAction`. The fan stops or starts about five seconds
+later. They are ordinary manual scenes, they show up in the app, and deleting
+them only means the integration makes them again.
+
+Two traps on the way there, both of which answer `code: 0`:
+
+- `saveCommandAction` looks like the endpoint that attaches a command to a
+  scene. It accepts anything and stores nothing. The action has to be part of
+  the `saveOrUpdate` payload for the whole scene.
+- inside that payload the command's key is `id`, not `commandId`, and it needs
+  `detailType`:
+  `"detail": [{"id": "159", "detailType": "enum", "value": "163"}]`.
+
+`turn_on` waits about six seconds after the scene before applying a speed or
+preset that came with the call, because the fan discards those while stopped.
+
 ## How the device actually behaves
 
 Two findings shape the whole design, and both cost time to discover. They are
@@ -149,8 +179,8 @@ that exists changes anything observable.
 
 ## Still to do
 
-- [ ] Power on/off - needs someone to capture what the app sends
-- [ ] Identify the remaining 11 properties: `1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `4.1`, `4.2`, `6.4`, `6.7`, `6.11`
+- [ ] Identify the remaining 9 properties: `1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `6.4`, `6.7`, `6.11`. Every control the app offers has been driven while polling all 28 properties; none of them moves these, so they are internal. `4.1` (100) and `4.2` (180) are almost certainly the optional composite filter's life and days - the app's page for that filter says "replace every 6 months" and the pre-filter's own pair is 4.7/4.8 - but that is inference from matching numbers, not a change observed
+- [ ] The app's "Indoor / Outdoor" switch changes no property at all (44 polls across both positions): it selects which air data the app displays, nothing on the device
 - [ ] Confirm the sleep timer's upper bound - 12 hours is a placeholder, not a measurement
 - [ ] Work out whether 3.3 differs from 3.2 at all; both always carry the same number
 - [ ] Local control - the device is cloud-bound with no miIO token, and its BLE path is unexplored
