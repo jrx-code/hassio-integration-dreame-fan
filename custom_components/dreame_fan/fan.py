@@ -111,8 +111,8 @@ class DreameFan(DreameFanEntity, FanEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         if preset_mode not in MODE_VALUES:
             raise HomeAssistantError(f"Unknown mode {preset_mode}")
-        # Selecting a mode also moves the speed: sleep drops it to 1, natural to
-        # 2, circulate to 10, auto and custom to 5.
+        # Selecting a mode also moves the speed: night drops it to 1, natural to
+        # 2, strong to 10. Auto varies it - observed at both 3 and 5.
         await self.coordinator.async_set_property(PROP_MODE, MODE_VALUES[preset_mode])
 
     async def async_oscillate(self, oscillating: bool) -> None:

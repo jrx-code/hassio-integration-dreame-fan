@@ -73,10 +73,10 @@
           "preset_mode": {
             "state": {
               "auto": "Auto",
-              "circulate": "Obieg",
-              "sleep": "Sen",
-              "natural": "Naturalny",
-              "custom": "Niestandardowy"
+              "night": "Tryb nocny",
+              "natural": "Tryb naturalny",
+              "strong": "Tryb Mocny",
+              "custom": "Tryb niestandardowy"
             }
           }
         }

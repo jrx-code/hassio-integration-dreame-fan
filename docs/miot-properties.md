@@ -14,7 +14,7 @@ app's own display was checked against the value.
 | key | meaning | values | writable |
 |---|---|---|---|
 | 2.1 | power / running state | 1 = running, 2 = off | **no** - see below |
-| 2.3 | mode | 0 auto, 1 circulate, 2 sleep, 3 custom, 7 natural | yes |
+| 2.3 | mode | see the mode table below | yes |
 | 2.4 | fan speed | 1-10 | yes, but ignored while the fan is off |
 | 2.7 | oscillation | 0 / 1 | yes |
 | 2.8 | active blades, bitmask | 1 left, 2 right, 3 both | yes |
@@ -26,8 +26,24 @@ app's own display was checked against the value.
 
 Notes on the confirmations:
 
-* **Mode and speed are coupled.** Selecting a mode also sets the speed: sleep
-  drops 2.4 to 1, natural to 2, circulate to 10, auto and custom to 5.
+* **Mode and speed are coupled.** Selecting a mode also sets the speed: night
+  drops 2.4 to 1, natural to 2, strong to 10. Auto varies it - observed at both
+  3 and 5, which is what an automatic mode would be expected to do.
+
+### Modes
+
+Values confirmed by tapping each one in the app and reading both the label it
+displays and 2.3. The order matches F1-F5 on the physical remote.
+
+| remote | app label (pl) | 2.3 | speed it sets |
+|---|---|---|---|
+| F1 | Auto | 0 | varies |
+| F2 | Tryb nocny | 2 | 1 |
+| F3 | Tryb naturalny | 7 | 2 |
+| F4 | Tryb Mocny | 1 | 10 |
+| F5 | Tryb niestandardowy | 3 | left as-is |
+
+Note the values are not in picker order: strong is 1 and natural is 7.
 * **Temperature is real, not a coincidence.** 3.2 and 3.3 always carry the same
   number and always move together. Switching the fan off made both climb
   26 -> 27 -> 28; switching it back on made them fall 29 -> 28 -> 27 within
