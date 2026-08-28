@@ -16,7 +16,8 @@ cover the robot vacuums only.
 
 | | |
 |---|---|
-| **Speed** | 10 steps, as a normal `fan` percentage |
+| **Power** | on / off, through a scene the integration keeps for itself - see [below](#power-and-why-it-goes-through-a-scene) |
+| **Speed** | 10 steps, as a normal `fan` percentage; setting one on a stopped fan starts it |
 | **Modes** | Auto, Night, Natural, Strong, Custom - the same five as F1-F5 on the remote |
 | **Oscillation** | on / off |
 | **Blades** | left and right, independently |
@@ -25,7 +26,7 @@ cover the robot vacuums only.
 | **Child lock** | on / off |
 | **Blade speed** | standard or fast, separate from the airflow speed |
 | **LED display, key sound** | on / off |
-| **Sensors** | temperature, pre-filter life (%) and days until cleaning |
+| **Sensors** | temperature, live airflow (0-10), pre-filter and composite filter life (%) and days |
 
 <p>
 <img src="https://raw.githubusercontent.com/jrx-code/hassio-integration-dreame-fan/main/docs/media/control.png" width="41%" align="top">
@@ -188,6 +189,24 @@ that exists changes anything observable.
 - [ ] Work out whether 3.3 differs from 3.2 at all; both always carry the same number
 - [ ] Local control - the device is cloud-bound with no miIO token, and its BLE path is unexplored
 - [ ] Other models: only `dreame.fan.u2519` is claimed, because it is the only one that has been tested
+
+## Tools
+
+Three standalone scripts, none of which needs Home Assistant installed - they
+load `cloud.py` straight out of the integration:
+
+```bash
+export DREAME_USER=... DREAME_PASS=...
+tools/probe.py list                   # devices on the account
+tools/probe.py scan <did>             # brute-force siid 1-15 / piid 1-30
+tools/watch.py <did>                  # poll every property, print what changes
+tools/experiment.py <did> 6.12 0      # write one property, diff, restore
+```
+
+`watch.py` is the one that settles arguments: start it, operate the fan from the
+app or the remote, and read off which properties moved and in what order. It is
+how 2.4 turned out to be the live airflow rather than a setpoint, and how the
+app's Indoor/Outdoor switch was shown to change nothing at all.
 
 ## Contributing
 
