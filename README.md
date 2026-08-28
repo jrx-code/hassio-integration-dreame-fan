@@ -80,6 +80,8 @@ cloud integration.
 | `sensor` airflow | 2.4 | live 0-10, whatever the mode is doing |
 | `sensor` temperature | 3.2 | |
 | `sensor` pre-filter life | 4.7 | percent |
+| `sensor` composite filter life | 4.1 | percent, the optional HEPA filter |
+| `sensor` composite filter remaining | 4.2 | days, 180 = the six months the app quotes |
 | `sensor` pre-filter remaining | 4.8 | days until cleaning |
 | `binary_sensor` continuous monitoring | 2.15 | read-only, see above |
 | `sensor` property N.N | 11 others | raw, **disabled by default** |
@@ -179,7 +181,8 @@ that exists changes anything observable.
 
 ## Still to do
 
-- [ ] Identify the remaining 9 properties: `1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `6.4`, `6.7`, `6.11`. Every control the app offers has been driven while polling all 28 properties; none of them moves these, so they are internal. `4.1` (100) and `4.2` (180) are almost certainly the optional composite filter's life and days - the app's page for that filter says "replace every 6 months" and the pre-filter's own pair is 4.7/4.8 - but that is inference from matching numbers, not a change observed
+- [ ] Identify the remaining 9 properties: `1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `6.4`, `6.7`, `6.11`. Every control the app offers has been driven while polling all 28 properties; none of them moves these, so they are internal
+- [ ] Find where "the composite filter is fitted" is stored. Marking one as fitted in the app makes its card appear on the device page reading 180 days - which is 4.2 - but **no** property changed: all 28 were polled every two seconds across the click, and `iotuserdata/getDeviceData` holds only `s_pri_plugin` and `s_auth_config`. So the flag is app- or cloud-side, and 4.1/4.2 count regardless of whether a filter is actually in there
 - [ ] The app's "Indoor / Outdoor" switch changes no property at all (44 polls across both positions): it selects which air data the app displays, nothing on the device
 - [ ] Confirm the sleep timer's upper bound - 12 hours is a placeholder, not a measurement
 - [ ] Work out whether 3.3 differs from 3.2 at all; both always carry the same number
