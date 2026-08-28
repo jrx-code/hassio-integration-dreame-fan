@@ -41,5 +41,46 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "filter_days": {
+        "name": "Filtr wstępny, pozostało"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Blokada dziecka"
+      },
+      "blade_left": {
+        "name": "Lewa łopatka"
+      },
+      "blade_right": {
+        "name": "Prawa łopatka"
+      }
+    },
+    "number": {
+      "timer": {
+        "name": "Wyłącznik czasowy"
+      }
+    },
+    "fan": {
+      "dreame_fan": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "auto": "Auto",
+              "circulate": "Obieg",
+              "sleep": "Sen",
+              "natural": "Naturalny",
+              "custom": "Niestandardowy"
+            }
+          }
+        }
+      }
+    }
   }
 }

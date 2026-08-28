@@ -41,5 +41,46 @@
         }
       }
     }
+  },
+  "entity": {
+    "fan": {
+      "dreame_fan": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "auto": "Auto",
+              "circulate": "Circulate",
+              "sleep": "Sleep",
+              "natural": "Natural",
+              "custom": "Custom"
+            }
+          }
+        }
+      }
+    },
+    "sensor": {
+      "temperature": {
+        "name": "Temperature"
+      },
+      "filter_days": {
+        "name": "Pre-filter remaining"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Child lock"
+      },
+      "blade_left": {
+        "name": "Left blade"
+      },
+      "blade_right": {
+        "name": "Right blade"
+      }
+    },
+    "number": {
+      "timer": {
+        "name": "Sleep timer"
+      }
+    }
   }
 }

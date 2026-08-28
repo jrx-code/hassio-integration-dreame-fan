@@ -1,22 +1,30 @@
-"""Raw property sensors for a Dreame fan.
+"""Sensors for the Dreame MF10.
 
-The MF10 has no published MIoT spec and none of its 28 properties have been
-identified yet, so every one is exposed as a diagnostic sensor. That is
-deliberate: watching which entity moves while the fan is operated from its app
-or its buttons is how the properties get named. Once a property's meaning is
-established it should graduate to a real entity (fan, switch, number) and drop
-off this list.
+Named sensors for the properties whose meaning is established, plus one raw
+diagnostic sensor per property that is still unidentified. The raw ones are the
+tool for naming the rest: watch which entity moves while the fan is operated one
+control at a time, then promote it here.
 """
 
 from __future__ import annotations
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
-from homeassistant.const import EntityCategory
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
+from homeassistant.const import EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import DreameFanConfigEntry
-from .const import CONFIRMED_PROPERTIES, KNOWN_WRITABLE, PROPERTY_KEYS
+from .const import (
+    CONFIRMED_PROPERTIES,
+    KNOWN_WRITABLE,
+    PROP_FILTER_DAYS,
+    PROP_TEMPERATURE,
+    PROPERTY_KEYS,
+)
 from .coordinator import DreameFanCoordinator
 from .entity import DreameFanEntity
 
@@ -26,17 +34,68 @@ async def async_setup_entry(
     entry: DreameFanConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up one sensor per known property."""
     coordinator = entry.runtime_data
-    async_add_entities(
+    entities: list[SensorEntity] = [
+        DreameFanTemperature(coordinator),
+        DreameFanFilterDays(coordinator),
+    ]
+    entities.extend(
         DreameFanPropertySensor(coordinator, key)
         for key in PROPERTY_KEYS
         if key not in CONFIRMED_PROPERTIES
     )
+    async_add_entities(entities)
+
+
+class DreameFanTemperature(DreameFanEntity, SensorEntity):
+    """Ambient temperature, property 3.2.
+
+    3.3 always carries the same number and moves with it; nothing observed so
+    far tells the two apart, so only one is exposed as a named sensor and 3.3
+    stays available as a raw property if that ever changes.
+    """
+
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_translation_key = "temperature"
+
+    def __init__(self, coordinator: DreameFanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.did}_temperature"
+
+    @property
+    def native_value(self) -> int | None:
+        raw = self.coordinator.data.get(PROP_TEMPERATURE)
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return None
+
+
+class DreameFanFilterDays(DreameFanEntity, SensorEntity):
+    """Pre-filter life left, property 4.8, in days."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTime.DAYS
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "filter_days"
+
+    def __init__(self, coordinator: DreameFanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.did}_filter_days"
+
+    @property
+    def native_value(self) -> int | None:
+        raw = self.coordinator.data.get(PROP_FILTER_DAYS)
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return None
 
 
 class DreameFanPropertySensor(DreameFanEntity, SensorEntity):
-    """One unidentified MIoT property, shown raw."""
+    """One still-unidentified MIoT property, shown raw."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -44,8 +103,6 @@ class DreameFanPropertySensor(DreameFanEntity, SensorEntity):
     def __init__(self, coordinator: DreameFanCoordinator, key: str) -> None:
         super().__init__(coordinator)
         self._key = key
-        self._attr_translation_key = "property"
-        self._attr_translation_placeholders = {"key": key}
         self._attr_name = f"Property {key}"
         self._attr_unique_id = f"{coordinator.did}_prop_{key.replace('.', '_')}"
 
