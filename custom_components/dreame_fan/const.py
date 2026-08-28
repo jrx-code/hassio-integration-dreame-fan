@@ -28,7 +28,7 @@ WRITE_RECONCILE_SECONDS: Final = 60
 
 PROP_POWER: Final = "2.1"          # 1 = running, 2 = off. Rejects writes.
 PROP_MODE: Final = "2.3"           # see MODES
-PROP_SPEED: Final = "2.4"          # 1-10; not writable while the fan is off
+PROP_SPEED: Final = "2.4"          # 1-10, see the note below; not writable while off
 PROP_OSCILLATION: Final = "2.7"    # 0 / 1
 PROP_BLADES: Final = "2.8"         # bitmask: 1 = left, 2 = right, 3 = both
 PROP_DIRECTION_SYNC: Final = "2.9"      # "Synchronizacja kierunku nawiewu", 0 / 1
@@ -43,6 +43,24 @@ PROP_KEY_SOUND: Final = "6.17"     # "Dźwięk klawisza", 0 / 1
 PROP_BLADE_SPEED: Final = "6.30"   # "Prędkość łopatek", see BLADE_SPEEDS
 PROP_TIMER_HOURS: Final = "6.8"    # 0 = off
 PROP_CHILD_LOCK: Final = "6.10"    # 0 / 1
+
+# 2.4 is not a setpoint in every mode. Measured 2026-08-28 by driving the fan
+# from the app and the remote while polling all 28 properties every 2 s
+# (203 samples with the fan running, tools/watch.py):
+#
+#   mode                samples   values seen for 2.4
+#   natural (7)             121   0,1,2,3,4 - walks continuously, every few seconds
+#   strong (1)               20   10        - fixed by the mode
+#   night (2)                 2   1         - fixed by the mode
+#   auto (0)                  1   3         - chosen by the device
+#   custom (3)               60   7 then 2  - exactly what was set in the app
+#
+# So 2.4 reads the airflow the fan is producing right now. In every mode but
+# custom that number belongs to the mode, and in natural mode it never settles.
+# Selecting a mode moves 2.4 within the same poll - there is no second property
+# holding a per-mode speed - and custom remembers its own last value: leaving
+# custom at 2 and coming back put 2.4 straight back to 2.
+MODE_SPEED_WANDERS: Final = (7,)   # natural, and only natural
 
 POWER_ON: Final = 1
 POWER_OFF: Final = 2

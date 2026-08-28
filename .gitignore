@@ -6,3 +6,5 @@ venv/
 .secrets
 *.log
 scratch/
+# vendor app packages pulled in for analysis - hundreds of MB, never committed
+apk/
