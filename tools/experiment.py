@@ -13,11 +13,10 @@ import os
 import sys
 import time
 
-sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                    "custom_components", "dreame_fan")
-)
-from cloud import DreameHomeCloud, DreameCloudError  # noqa: E402
+from _integration import load
+
+_cloud = load("cloud")
+DreameHomeCloud, DreameCloudError = _cloud.DreameHomeCloud, _cloud.DreameCloudError
 
 KEYS = (
     "1.8 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 2.10 2.11 2.12 2.15 "

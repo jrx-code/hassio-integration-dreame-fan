@@ -28,8 +28,10 @@ from .const import (
     KNOWN_WRITABLE,
     PROP_FILTER_DAYS,
     PROP_FILTER_PERCENT,
+    PROP_SPEED,
     PROP_TEMPERATURE,
     PROPERTY_KEYS,
+    SPEED_MAX,
 )
 from .coordinator import DreameFanCoordinator
 from .entity import DreameFanEntity
@@ -42,6 +44,7 @@ async def async_setup_entry(
 ) -> None:
     coordinator = entry.runtime_data
     entities: list[SensorEntity] = [
+        DreameFanAirflow(coordinator),
         DreameFanTemperature(coordinator),
         DreameFanFilterDays(coordinator),
         DreameFanFilterPercent(coordinator),
@@ -52,6 +55,33 @@ async def async_setup_entry(
         if key not in CONFIRMED_PROPERTIES
     )
     async_add_entities(entities)
+
+
+class DreameFanAirflow(DreameFanEntity, SensorEntity):
+    """Airflow the fan is producing right now, property 2.4, 0-10.
+
+    The fan entity's percentage is a control and is deliberately held steady in
+    natural mode, where the device varies the airflow on its own every few
+    seconds. This sensor is the opposite: always the live number, whatever the
+    mode is doing with it. Measured 2026-08-28: natural walks 0-4, strong pins
+    10, night 1, auto picks its own, custom keeps what was set.
+    """
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_translation_key = "airflow"
+
+    def __init__(self, coordinator: DreameFanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.did}_airflow"
+
+    @property
+    def native_value(self) -> int | None:
+        raw = self.coordinator.data.get(PROP_SPEED)
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            return None
+        return value if 0 <= value <= SPEED_MAX else None
 
 
 class DreameFanTemperature(DreameFanEntity, SensorEntity):

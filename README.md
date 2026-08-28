@@ -83,15 +83,36 @@ cloud integration.
 | `switch` child lock | 6.10 | |
 | `number` sleep timer | 6.8 | hours, 0 is off |
 | `select` blade speed | 6.30 | standard or fast |
+| `sensor` airflow | 2.4 | live 0-10, whatever the mode is doing |
 | `sensor` temperature | 3.2 | |
 | `sensor` pre-filter life | 4.7 | percent |
 | `sensor` pre-filter remaining | 4.8 | days until cleaning |
 | `binary_sensor` continuous monitoring | 2.15 | read-only, see above |
 | `sensor` property N.N | 11 others | raw, **disabled by default** |
 
-Selecting a mode also moves the speed - night drops it to 1, natural to 2,
-strong to 10, auto varies it. The entity shows the requested value for a few
-seconds until the next poll reports what the device actually did.
+### Speed is not a setpoint, except in custom mode
+
+Property 2.4 reads the airflow the fan is producing **right now**. Measured by
+driving the fan from the app and the remote while polling every property every
+two seconds (203 samples with the fan running, `tools/watch.py`):
+
+| Mode | Samples | 2.4 |
+|---|---|---|
+| natural | 121 | 0, 1, 2, 3, 4 - walks continuously, by design |
+| strong | 20 | 10, fixed by the mode |
+| night | 2 | 1, fixed by the mode |
+| auto | 1 | 3, the device's own choice |
+| custom | 60 | 7, then 2 - exactly what was set |
+
+Selecting a mode moves 2.4 in the same poll; there is no second property holding
+a per-mode speed, and custom remembers its own last value (leaving custom at 2
+and returning put it straight back to 2).
+
+The `fan` entity's percentage is a **control**, so in natural mode it holds the
+last value seen in any other mode instead of following the fan's own variation -
+a slider that moves by itself every poll fights the user and fills the recorder.
+Everywhere else it shows the live number, which the mode holds steady anyway.
+`sensor` airflow always carries the live value, natural mode included.
 
 ### The raw property sensors
 

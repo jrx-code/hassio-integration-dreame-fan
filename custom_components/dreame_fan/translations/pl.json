@@ -56,6 +56,9 @@
       },
       "filter_percent": {
         "name": "Żywotność filtra wstępnego"
+      },
+      "airflow": {
+        "name": "Nadmuch"
       }
     },
     "switch": {

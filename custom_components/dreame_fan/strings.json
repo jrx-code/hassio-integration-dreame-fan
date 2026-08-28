@@ -71,6 +71,9 @@
       },
       "filter_percent": {
         "name": "Pre-filter life"
+      },
+      "airflow": {
+        "name": "Airflow"
       }
     },
     "switch": {
