@@ -156,11 +156,12 @@ class DreameFan(DreameFanEntity, FanEntity, RestoreEntity):
             await self.async_turn_off()
             return
         if not self.is_on:
-            # Verified: the device acknowledges a speed write while off but does
-            # not apply it, so reporting success here would be a lie.
-            raise HomeAssistantError(
-                "The fan is off and ignores speed changes until it is switched on."
-            )
+            # The device accepts a speed write while stopped and discards it, so
+            # setting a speed has to start the fan first - which is also what a
+            # user dragging the slider on a stopped fan means. Before power
+            # worked this raised instead, and the slider answered with a 500.
+            await self.coordinator.async_set_power(True)
+            await asyncio.sleep(POWER_SETTLE_SECONDS)
         speed = math.ceil(percentage_to_ranged_value(SPEED_RANGE, percentage))
         # Keep the slider where the user put it: the next poll in natural mode
         # would otherwise read back whatever the fan happens to be blowing.

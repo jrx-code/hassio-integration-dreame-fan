@@ -59,6 +59,12 @@
       },
       "airflow": {
         "name": "Nadmuch"
+      },
+      "hepa_percent": {
+        "name": "Filtr kompozytowy — żywotność"
+      },
+      "hepa_days": {
+        "name": "Filtr kompozytowy — pozostało"
       }
     },
     "switch": {

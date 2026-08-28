@@ -74,6 +74,12 @@
       },
       "airflow": {
         "name": "Airflow"
+      },
+      "hepa_percent": {
+        "name": "Composite filter life"
+      },
+      "hepa_days": {
+        "name": "Composite filter remaining"
       }
     },
     "switch": {

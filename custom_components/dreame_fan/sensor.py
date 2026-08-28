@@ -28,6 +28,8 @@ from .const import (
     KNOWN_WRITABLE,
     PROP_FILTER_DAYS,
     PROP_FILTER_PERCENT,
+    PROP_HEPA_DAYS,
+    PROP_HEPA_PERCENT,
     PROP_SPEED,
     PROP_TEMPERATURE,
     PROPERTY_KEYS,
@@ -48,6 +50,8 @@ async def async_setup_entry(
         DreameFanTemperature(coordinator),
         DreameFanFilterDays(coordinator),
         DreameFanFilterPercent(coordinator),
+        DreameFanHepaPercent(coordinator),
+        DreameFanHepaDays(coordinator),
     ]
     entities.extend(
         DreameFanPropertySensor(coordinator, key)
@@ -152,6 +156,52 @@ class DreameFanFilterDays(DreameFanEntity, SensorEntity):
         raw = self.coordinator.data.get(PROP_FILTER_DAYS)
         try:
             return int(raw)
+        except (TypeError, ValueError):
+            return None
+
+
+class DreameFanHepaPercent(DreameFanEntity, SensorEntity):
+    """Composite (HEPA) filter life left, property 4.1, percent.
+
+    That filter is optional and sold separately. Confirmed by marking one as
+    fitted in the app: its card then appears on the device page reading
+    "180 days left", which is exactly 4.2, next to the pre-filter's own 4.7/4.8
+    pair. On a fan without one the counters simply sit at 100 % / 180 days.
+    """
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "hepa_percent"
+
+    def __init__(self, coordinator: DreameFanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.did}_hepa_percent"
+
+    @property
+    def native_value(self) -> int | None:
+        try:
+            return int(self.coordinator.data.get(PROP_HEPA_PERCENT))
+        except (TypeError, ValueError):
+            return None
+
+
+class DreameFanHepaDays(DreameFanEntity, SensorEntity):
+    """Composite (HEPA) filter days until replacement, property 4.2."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTime.DAYS
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "hepa_days"
+
+    def __init__(self, coordinator: DreameFanCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.did}_hepa_days"
+
+    @property
+    def native_value(self) -> int | None:
+        try:
+            return int(self.coordinator.data.get(PROP_HEPA_DAYS))
         except (TypeError, ValueError):
             return None
 

@@ -37,6 +37,12 @@ PROP_TEMPERATURE: Final = "3.2"    # degC; 3.3 carries the same value
 PROP_TEMPERATURE_ALT: Final = "3.3"
 PROP_FILTER_PERCENT: Final = "4.7"  # pre-filter life left, percent
 PROP_FILTER_DAYS: Final = "4.8"    # pre-filter days until cleaning
+# The optional composite (HEPA) filter, sold separately, has its own pair. Read
+# 100 % / 180 days on a fan that has never had one fitted, and the app's page
+# for that filter says "replace every 6 months" - 180 days. Inferred from those
+# matching numbers, not from a change observed while fitting one.
+PROP_HEPA_PERCENT: Final = "4.1"
+PROP_HEPA_DAYS: Final = "4.2"
 PROP_MONITORING: Final = "2.15"    # "Ciągłe monitorowanie". Rejects writes.
 PROP_LED_DISPLAY: Final = "6.12"   # "Wyświetlacz LED", 0 / 1
 PROP_KEY_SOUND: Final = "6.17"     # "Dźwięk klawisza", 0 / 1
@@ -108,6 +114,8 @@ CONFIRMED_PROPERTIES: Final[dict[str, str]] = {
     PROP_TEMPERATURE_ALT: "temperature_secondary",
     PROP_FILTER_PERCENT: "filter_percent",
     PROP_FILTER_DAYS: "filter_days",
+    PROP_HEPA_PERCENT: "hepa_percent",
+    PROP_HEPA_DAYS: "hepa_days",
     PROP_MONITORING: "monitoring",
     PROP_LED_DISPLAY: "led_display",
     PROP_KEY_SOUND: "key_sound",
