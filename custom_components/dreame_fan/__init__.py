@@ -22,7 +22,12 @@ from .const import (
 )
 from .coordinator import DreameFanCoordinator
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [
+    Platform.FAN,
+    Platform.NUMBER,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 SET_PROPERTY_SCHEMA = vol.Schema(
     {
