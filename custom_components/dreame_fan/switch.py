@@ -10,7 +10,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import DreameFanConfigEntry
-from .const import BLADE_LEFT, BLADE_RIGHT, PROP_BLADES, PROP_CHILD_LOCK
+from .const import (
+    BLADE_LEFT,
+    BLADE_RIGHT,
+    PROP_BLADES,
+    PROP_CHILD_LOCK,
+    PROP_DIRECTION_ALTERNATE,
+    PROP_DIRECTION_SYNC,
+)
 from .coordinator import DreameFanCoordinator
 from .entity import DreameFanEntity
 
@@ -26,6 +33,8 @@ async def async_setup_entry(
             DreameFanChildLock(coordinator),
             DreameFanBlade(coordinator, "left", BLADE_LEFT),
             DreameFanBlade(coordinator, "right", BLADE_RIGHT),
+            DreameFanFlag(coordinator, "direction_sync", PROP_DIRECTION_SYNC),
+            DreameFanFlag(coordinator, "direction_alternate", PROP_DIRECTION_ALTERNATE),
         ]
     )
 
@@ -92,3 +101,32 @@ class DreameFanBlade(DreameFanEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._async_apply(False)
+
+
+class DreameFanFlag(DreameFanEntity, SwitchEntity):
+    """A plain 0/1 property from the air circulation card.
+
+    The app offers direction sync and alternating direction as alternatives -
+    picking one replaces the other in its UI - but the device accepts both set
+    at once, and then the app renders a mixed state it cannot produce itself.
+    They are independent flags here, which is what the device actually does.
+    """
+
+    def __init__(
+        self, coordinator: DreameFanCoordinator, key: str, prop: str
+    ) -> None:
+        super().__init__(coordinator)
+        self._prop = prop
+        self._attr_translation_key = key
+        self._attr_unique_id = f"{coordinator.did}_{key}"
+
+    @property
+    def is_on(self) -> bool | None:
+        raw = self.coordinator.data.get(self._prop)
+        return None if raw is None else raw != "0"
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_property(self._prop, 1)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_property(self._prop, 0)

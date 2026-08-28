@@ -18,6 +18,8 @@ app's own display was checked against the value.
 | 2.4 | fan speed | 1-10 | yes, but ignored while the fan is off |
 | 2.7 | oscillation | 0 / 1 | yes |
 | 2.8 | active blades, bitmask | 1 left, 2 right, 3 both | yes |
+| 2.9 | airflow direction sync, "Synchronizacja kierunku nawiewu" | 0 / 1 | yes |
+| 2.12 | alternating airflow direction, "Naprzemienny kierunek nawiewu" | 0 / 1 | yes |
 | 3.2 | temperature | degC | not tested |
 | 3.3 | temperature, same value as 3.2 | degC | not tested |
 | 4.8 | pre-filter days remaining | app showed "Pozostało 30 dni" at value 30 | not tested |
@@ -48,6 +50,13 @@ Note the values are not in picker order: strong is 1 and natural is 7.
   number and always move together. Switching the fan off made both climb
   26 -> 27 -> 28; switching it back on made them fall 29 -> 28 -> 27 within
   twenty seconds. Nothing observed so far distinguishes 3.2 from 3.3.
+* **The two direction flags live in the circulation card.** Both were named by
+  tapping the small icons between the blades and reading the label the app then
+  shows: the chain icon is 2.9, the shuffle icon is 2.12. The app offers them as
+  alternatives - turning one on replaces the two-blade view with a single merged
+  control - but the device accepts both set at once, and the app then renders a
+  mixed state (2.9's label with 2.12's icon) that it cannot produce itself. They
+  are independent flags on the wire.
 * **Blades are a bitmask**, verified in both directions: turning the left blade
   off took 3 -> 2, back on 2 -> 3, then turning the right blade off took 3 -> 1.
 
@@ -78,13 +87,12 @@ power button is pressed.
 
 ## Still unidentified
 
-`1.8`, `2.2`, `2.5`, `2.6`, `2.9`, `2.10`, `2.11`, `2.12`, `2.15`, `4.1`, `4.2`,
-`4.7`, `6.4`, `6.7`, `6.11`, `6.12`, `6.17`, `6.30`.
+`1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `2.15`, `4.1`, `4.2`, `4.7`, `6.4`,
+`6.7`, `6.11`, `6.12`, `6.17`, `6.30`.
 
 App areas not yet exercised, which is where these most likely live: the
 "Wewnątrz / Na zewnątrz" toggle, the "Wygodnie" and "Temperatura" sub-screens,
-the link and shuffle icons in the circulation card, and the three-dot settings
-menu (display, sound, and similar).
+and the three-dot settings menu (display, sound, and similar).
 
 `4.7` reads 99 next to `4.8`'s 30, so a filter percentage is plausible - but
 that is a guess, not an observation.

@@ -60,6 +60,12 @@
       },
       "blade_right": {
         "name": "Prawa łopatka"
+      },
+      "direction_sync": {
+        "name": "Synchronizacja kierunku nawiewu"
+      },
+      "direction_alternate": {
+        "name": "Naprzemienny kierunek nawiewu"
       }
     },
     "number": {

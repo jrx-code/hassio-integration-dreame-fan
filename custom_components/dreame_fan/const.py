@@ -31,6 +31,8 @@ PROP_MODE: Final = "2.3"           # see MODES
 PROP_SPEED: Final = "2.4"          # 1-10; not writable while the fan is off
 PROP_OSCILLATION: Final = "2.7"    # 0 / 1
 PROP_BLADES: Final = "2.8"         # bitmask: 1 = left, 2 = right, 3 = both
+PROP_DIRECTION_SYNC: Final = "2.9"      # "Synchronizacja kierunku nawiewu", 0 / 1
+PROP_DIRECTION_ALTERNATE: Final = "2.12"  # "Naprzemienny kierunek nawiewu", 0 / 1
 PROP_TEMPERATURE: Final = "3.2"    # degC; 3.3 carries the same value
 PROP_TEMPERATURE_ALT: Final = "3.3"
 PROP_FILTER_DAYS: Final = "4.8"    # pre-filter days remaining
@@ -70,6 +72,8 @@ CONFIRMED_PROPERTIES: Final[dict[str, str]] = {
     PROP_SPEED: "speed",
     PROP_OSCILLATION: "oscillation",
     PROP_BLADES: "blades",
+    PROP_DIRECTION_SYNC: "direction_sync",
+    PROP_DIRECTION_ALTERNATE: "direction_alternate",
     PROP_TEMPERATURE: "temperature",
     PROP_TEMPERATURE_ALT: "temperature_secondary",
     PROP_FILTER_DAYS: "filter_days",
@@ -83,6 +87,8 @@ KNOWN_WRITABLE: Final = (
     PROP_SPEED,
     PROP_OSCILLATION,
     PROP_BLADES,
+    PROP_DIRECTION_SYNC,
+    PROP_DIRECTION_ALTERNATE,
     PROP_TIMER_HOURS,
     PROP_CHILD_LOCK,
 )
