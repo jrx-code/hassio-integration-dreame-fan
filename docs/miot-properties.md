@@ -127,9 +127,9 @@ entities while operating the fan one control at a time.
 Without Home Assistant:
 
 ```bash
-tools/probe.py scan -117222980 > /tmp/before.json
+tools/probe.py scan <did> > /tmp/before.json
 # change exactly one thing on the fan
-tools/probe.py scan -117222980 > /tmp/after.json
+tools/probe.py scan <did> > /tmp/after.json
 diff <(jq -S . /tmp/before.json) <(jq -S . /tmp/after.json)
 ```
 
@@ -158,7 +158,7 @@ loop of single-property reads run afterwards was knocking on a device that had
 already gone - it was not the cause.
 
 While disconnected the fan broadcast an open provisioning SSID,
-`dreame-fan-u2519_miap3EC0`, whose suffix matches the last four hex digits of
+`dreame-fan-u2519_miapXXXX`, whose suffix matches the last four hex digits of
 its MAC; it stopped once the fan was back. **The network configuration was
 genuinely lost**: the fan did not rejoin by itself, and only returned after the
 owner re-ran the app's connect flow. Device state survived - all 28 properties

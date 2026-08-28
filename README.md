@@ -14,10 +14,10 @@ Working. Everything the device exposes is controllable except power.
 - [x] `fan` entity: speed 1-10, five modes, oscillation
 - [x] Switches: child lock, the two blades, direction sync, alternating direction, LED display, key sound
 - [x] Number: sleep timer
-- [x] Sensors: temperature, pre-filter days, plus the 11 unidentified properties raw
+- [x] Sensors: temperature, pre-filter days, plus the 11 unidentified properties raw (disabled by default)
 - [x] `dreame_fan.set_property` service for writing a raw property
 - [x] Brand icon, taken from the Dreame Vacuum brand
-- [x] Verified end to end on the dev instance (VM103, HA 2026.7.4)
+- [x] Verified end to end against a real MF10 on HA 2026.7.4
 - [ ] Power on/off - the device rejects every write to 2.1
 - [ ] Identify the remaining 11 properties
 
@@ -37,7 +37,18 @@ Working. Everything the device exposes is controllable except power.
 | `select` blade speed | 6.30 | standard or fast - the blades' own travel speed, not airflow |
 | `switch` LED display / key sound | 6.12, 6.17 | |
 | `binary_sensor` continuous monitoring | 2.15 | read-only: the API refuses writes to it |
-| `sensor` property N.N | the other 11 | raw, diagnostic, for identifying the rest |
+| `sensor` property N.N | the other 11 | raw, diagnostic, **disabled by default** |
+
+The eleven raw property sensors are off out of the box - they exist to identify
+what is left, not for daily use. Enable the ones you want in the entity
+registry, change one thing on the fan, and see which number moves.
+
+## Installation
+
+Add this repository to HACS as a custom repository of type Integration, install
+it, restart Home Assistant, then add **Dreame Fan** from Settings > Devices &
+Services. You will need the Dreamehome account the fan is paired to, and its
+region.
 
 The five preset modes are the app's own, and line up with F1-F5 on the remote:
 auto, night, natural, strong, custom. Selecting one also moves the speed - night
@@ -80,12 +91,12 @@ to fill in and for the command-line equivalent.
 
 ```bash
 export BW_SESSION=$(bw unlock --raw)
-export DREAME_USER=account@example.com
+export DREAME_USER=you@example.com
 export DREAME_PASS=$(bw get password "Dreame account")
 
 tools/probe.py list                      # devices on the account
-tools/probe.py scan -117222980           # full property scan
-tools/experiment.py -117222980 2.4 8     # write, diff, restore, verify
+tools/probe.py scan <did>           # full property scan
+tools/experiment.py <did> 2.4 8     # write, diff, restore, verify
 ```
 
 `probe.py` imports the protocol from `~/CodeHub/hassio/dreame-vacuum`; point
@@ -94,5 +105,5 @@ integration's own `cloud.py` and needs nothing else.
 
 ## Credentials
 
-Never in this repo. Bitwarden item **Dreame account**, account
-`account@example.com`, region `eu`.
+Never in this repo. your password manager, account
+`you@example.com`, region `eu`.
