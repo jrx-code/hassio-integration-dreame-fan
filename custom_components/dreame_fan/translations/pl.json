@@ -38,6 +38,10 @@
         "value": {
           "name": "Wartość",
           "description": "Liczba całkowita do zapisania."
+        },
+        "device_id": {
+          "name": "Urządzenie",
+          "description": "Wentylator Dreame, do którego zapisać."
         }
       }
     }

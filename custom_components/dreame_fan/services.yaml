@@ -1,8 +1,10 @@
 set_property:
-  target:
-    device:
-      integration: dreame_fan
   fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: dreame_fan
     property:
       required: true
       example: "2.4"
