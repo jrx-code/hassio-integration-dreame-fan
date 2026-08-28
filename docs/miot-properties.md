@@ -91,10 +91,11 @@ diff <(jq -S . /tmp/before.json) <(jq -S . /tmp/after.json)
 `tools/experiment.py <did> <siid.piid> <value>` drives a property instead:
 snapshot, write, diff, restore, verify the restore.
 
-## Do not fire MIoT actions blind - one took the fan off the network
+## Do not fire MIoT actions blind - one wiped the fan's Wi-Fi setup
 
-Probing actions on siid 2 took the fan off Wi-Fi for roughly twenty-five
-minutes. The timeline, from the cloud responses and the UDM's client table:
+Probing actions on siid 2 knocked the fan off the network and it needed
+re-provisioning to come back. The timeline, from the cloud responses and the
+UDM's client table:
 
 | time | event |
 |---|---|
@@ -103,23 +104,25 @@ minutes. The timeline, from the cloud responses and the UDM's client table:
 | ~16:27 | `action siid=2 aiid=2` -> code 0, **the last command the device ever acknowledged** |
 | immediately after | every further RPC returns 80001 |
 | 16:29:57 | the device drops its Wi-Fi association |
-| ~16:56 | back on Wi-Fi, cloud online, all 28 properties at their pre-failure values |
+| 16:29 - 16:56 | offline; broadcasting an open provisioning SSID |
+| ~16:56 | back only after the owner ran "re-connect" in the Dreamehome app |
 
 Neither action changed any property, so nothing was gained. `aiid` 3-8 do not
-exist. Note that the RPC channel died *before* the Wi-Fi association dropped,
-and that a tight loop of single-property reads run afterwards was knocking on a
-device that had already gone - it was not the cause.
+exist. The RPC channel died *before* the Wi-Fi association dropped, so a tight
+loop of single-property reads run afterwards was knocking on a device that had
+already gone - it was not the cause.
 
 While disconnected the fan broadcast an open provisioning SSID,
 `dreame-fan-u2519_miap3EC0`, whose suffix matches the last four hex digits of
-its MAC. That AP disappeared once it rejoined. **It is a fallback the device
-raises when it loses its connection, not evidence that its Wi-Fi credentials
-were cleared** - the credentials survived, since it came back to the original
-SSID by itself with all state intact.
+its MAC; it stopped once the fan was back. **The network configuration was
+genuinely lost**: the fan did not rejoin by itself, and only returned after the
+owner re-ran the app's connect flow. Device state survived - all 28 properties
+came back at their pre-failure values - so what the action cleared was the Wi-Fi
+setup, not the settings.
 
-What this does not establish is which of the two actions was responsible, or
-what either of them does. Both returned code 0 and changed nothing observable.
-Do not fire them again to find out.
+Which of the two actions did it, and what either of them is for, is not
+established. Both returned code 0 and changed nothing observable. Finding out
+costs another re-provisioning, so leave them alone.
 
 ## Keep RPC traffic sparse
 
