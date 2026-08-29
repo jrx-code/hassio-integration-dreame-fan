@@ -185,6 +185,7 @@ that exists changes anything observable.
 - [ ] Identify the remaining 9 properties: `1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `6.4`, `6.7`, `6.11`. Every control the app offers has been driven while polling all 28 properties; none of them moves these, so they are internal
 - [ ] Find where "the composite filter is fitted" is stored. Marking one as fitted in the app makes its card appear on the device page reading 180 days - which is 4.2 - but **no** property changed: all 28 were polled every two seconds across the click, and `iotuserdata/getDeviceData` holds only `s_pri_plugin` and `s_auth_config`. So the flag is app- or cloud-side, and 4.1/4.2 count regardless of whether a filter is actually in there
 - [ ] The app's "Indoor / Outdoor" switch changes no property at all (44 polls across both positions): it selects which air data the app displays, nothing on the device
+- [x] Why the fan appeared to switch itself on and off every minute or two: a rule saved on the device under "Inteligentne ustawienia scen", invisible to the scene API. Deleting it took 2.1/2.3 from 18 paired changes in eleven minutes to none in six. See [`docs/miot-properties.md`](docs/miot-properties.md)
 - [ ] Confirm the sleep timer's upper bound - 12 hours is a placeholder, not a measurement
 - [ ] Work out whether 3.3 differs from 3.2 at all; both always carry the same number
 - [ ] Local control - the device is cloud-bound with no miIO token, and its BLE path is unexplored
