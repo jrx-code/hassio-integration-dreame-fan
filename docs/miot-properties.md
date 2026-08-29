@@ -158,13 +158,33 @@ properties. Home Assistant polls every 30 seconds, so it lands on whichever
 bundle is current and the fan entity looks like it is switching itself on and
 off every minute or two - visible in the recorder from 08:46 onwards.
 
-3.2/3.3 drift 24-25 across the same window but are *not* part of the bundle:
-two on-samples read 24 and one off-sample read 25, so that is ordinary drift.
+3.2/3.3 are *not* part of the bundle. In a third window - all 28 properties,
+every three seconds for eleven minutes, no read errors - power and mode changed
+18 times each and always on the same sample, while the two temperatures changed
+20 times. Twice the temperature moved a sample before the pair and twice a
+sample after it. The temperature also bounces on its own: 25 -> 24 -> 25 inside
+three seconds at 11:54:44.
 
-What produces it is unknown. No automatic cloud scene is enabled - the account's
-two `sceneType: 2` scenes are both `enabled: 0` - so the trigger is not there.
-The fan's own "Inteligentne ustawienia scen", stored on the device and absent
-from the scene API, has not been read and is the obvious next place to look.
+Nothing else moved at all in those eleven minutes. All 24 remaining properties,
+the nine unidentified ones included, held their value for the whole window.
+
+### It is not a proximity sensor
+
+The same eleven-minute window covers a person leaving the room, staying out, and
+walking back in at a known time. Flips per minute ran 3, 5, 2, 0, 2, 2, 0, 4:
+the busiest minute happened with the room empty and two minutes were completely
+still, also with the room empty. The rate does not track presence, and no
+property responds to a person being there. If this fan senses people, it does
+not report it through any of its 28 properties.
+
+What produces the flip is unknown. No automatic cloud scene is enabled - the
+account's two `sceneType: 2` scenes are both `enabled: 0` - so the trigger is
+not there. Two consecutive samples three seconds apart can hold opposite power
+*and* opposite mode, which no fan does physically, so the likeliest reading is
+two publishers writing disagreeing bundles into the same store; both carry
+fresh, advancing `updateDate` values, so neither is a stale cache. The fan's own
+"Inteligentne ustawienia scen", stored on the device and absent from the scene
+API, has not been read and is the obvious next place to look.
 
 ### Identity fields
 
