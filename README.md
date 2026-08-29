@@ -192,7 +192,7 @@ that exists changes anything observable.
 
 ## Tools
 
-Three standalone scripts, none of which needs Home Assistant installed - they
+Four standalone scripts, none of which needs Home Assistant installed - they
 load `cloud.py` straight out of the integration:
 
 ```bash
@@ -201,12 +201,20 @@ tools/probe.py list                   # devices on the account
 tools/probe.py scan <did>             # brute-force siid 1-15 / piid 1-30
 tools/watch.py <did>                  # poll every property, print what changes
 tools/experiment.py <did> 6.12 0      # write one property, diff, restore
+tools/writable.py <did>               # which properties accept a write at all
 ```
 
 `watch.py` is the one that settles arguments: start it, operate the fan from the
 app or the remote, and read off which properties moved and in what order. It is
 how 2.4 turned out to be the live airflow rather than a setpoint, and how the
 app's Indoor/Outdoor switch was shown to change nothing at all.
+
+`writable.py` answers the other recurring question - can this property be set? -
+by writing each one the value it already holds, so nothing changes whichever way
+it goes, and checking that the device's reply names the property that was
+written. Of the nine unidentified properties only 1.8 accepts a write; the rest
+either time out or answer `code 0` about some other property while leaving the
+value alone. `docs/miot-properties.md` has the table.
 
 ## Contributing
 

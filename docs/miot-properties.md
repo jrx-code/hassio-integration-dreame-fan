@@ -92,13 +92,46 @@ power button is pressed.
 
 ## Still unidentified
 
-`1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `4.1`, `4.2`, `6.4`, `6.7`, `6.11`.
+`1.8`, `2.2`, `2.5`, `2.6`, `2.10`, `2.11`, `6.4`, `6.7`, `6.11`. `4.1` and `4.2`
+were the composite filter and left this list in v0.5.0.
 
 App areas not yet exercised, which is where these most likely live: the
 "Wewnątrz / Na zewnątrz" toggle, the "Wygodnie" and "Temperatura" sub-screens,
 and "Inteligentne ustawienia scen" under the three-dot menu. The rest of that
 settings menu is now accounted for: continuous monitoring, key sound, LED
 display and blade speed.
+
+### Which of the nine accept a write
+
+Established on 2026-08-29 by writing each property **its own current value** -
+a no-op whatever the answer - and reading the raw per-property code back. A
+write to 6.12, which is known to work, was sent immediately before every probe,
+so a refusal cannot be blamed on a tired channel. Every value was identical
+before and after.
+
+| key | value | answer | writable |
+|---|---|---|---|
+| 1.8 | 0 | `code 0`, echoed as `siid 1, piid 8` | **yes** |
+| 2.2 | 0 | 80001 | no |
+| 2.5 | 0 | 80001 | no |
+| 2.6 | 3 | 80001 | no |
+| 2.10 | 1 | `code 0`, but answered for `siid 2 piid 0` **and** `siid 0 piid 1` | no |
+| 2.11 | 1 | 80001 | no |
+| 6.4 | 0 | 80001 | no |
+| 6.7 | 1 | 80001 | no |
+| 6.11 | 1 | `code 0`, but answered for `siid 6, piid 1` | no |
+
+The control write answered `code 0` echoed as `siid 6, piid 12` in all nine
+pairs, so the channel was healthy throughout.
+
+**Read the siid/piid back, not just the code.** 2.10 and 6.11 look like
+successes until you check which property the device replied about: 6.11 comes
+back as piid 1, and 2.10 as two entries for properties nobody asked about. This
+is the same signature 2.1 produces, where a write "acknowledged" as piid 0 and
+piid 3 left 2.1 untouched. Only 1.8 echoed its own address.
+
+1.8 is confirmed only as *accepting* a write of the value it already held;
+writing it a different value has not been tried, so what it does is still open.
 
 ### Two properties refuse writes, not one
 
