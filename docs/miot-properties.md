@@ -177,14 +177,36 @@ still, also with the room empty. The rate does not track presence, and no
 property responds to a person being there. If this fan senses people, it does
 not report it through any of its 28 properties.
 
-What produces the flip is unknown. No automatic cloud scene is enabled - the
-account's two `sceneType: 2` scenes are both `enabled: 0` - so the trigger is
-not there. Two consecutive samples three seconds apart can hold opposite power
-*and* opposite mode, which no fan does physically, so the likeliest reading is
-two publishers writing disagreeing bundles into the same store; both carry
-fresh, advancing `updateDate` values, so neither is a stale cache. The fan's own
-"Inteligentne ustawienia scen", stored on the device and absent from the scene
-API, has not been read and is the obvious next place to look.
+### The flip was a smart scene running on the fan itself
+
+The cause is a rule stored on the device under "Inteligentne ustawienia scen",
+reached from the three-dot menu in the app. The owner's rule was named *FanON*,
+and the app's notification list was full of "task FanON completed" entries with
+timestamps, which is the rule firing over and over.
+
+Deleting it stopped the flip dead. Same 28 properties, same three-second
+sampling, same fan:
+
+| | before | after the rule was deleted |
+|---|---|---|
+| window | 11 min | 6 min |
+| 2.1 / 2.3 changes | 18 each, always paired | **0** |
+| 3.2 / 3.3 | 20 changes, bouncing 25-24-25 within 3 s | one step, 25 -> 26 |
+| the other 24 properties | no change | no change |
+
+The temperature is the tell. While the rule ran it jittered between 24 and 25;
+with the rule gone it climbed 25 -> 26 and stayed there, which is what the doc
+above describes for a fan that is genuinely off and no longer stirring the air.
+
+Two things made this hard to find. These rules live **on the device** and do not
+appear in the scene API: `getSceneByHomeV2` lists only the cloud scenes, and the
+account's two automatic ones were both `enabled: 0`, which looked like proof
+that no automation existed. And the flip is invisible from the property store
+alone - nothing records that a rule fired, only the state it leaves behind.
+
+**So before blaming the cloud for a device that changes state on its own, open
+the app's smart scene list and its notification log.** The evidence is there and
+nowhere in the API.
 
 ### Identity fields
 
