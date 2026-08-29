@@ -140,6 +140,32 @@ and both are freely toggleable in the app - so this is the API's limit rather
 than the device's. Everything else that was tried accepts writes. 2.15 is
 therefore exposed as a binary sensor, not a switch.
 
+### 2.1 and 2.3 flip together, on their own
+
+Watched on 2026-08-29 with nobody in the room and nothing writing to the fan.
+Two windows, sampled from the cloud property store: 44 reads four seconds apart,
+and 58 reads ten seconds apart over the following twelve minutes. Power and mode
+change **atomically and only with each other**, under a single `updateDate`.
+
+| 2.1 | 2.3 | 4 s window | 10 s window |
+|---|---|---|---|
+| 1 (on) | 3 (custom) | 36 | 44 |
+| 2 (off) | 0 (auto) | 8 | 14 |
+
+There is not one sample in either window where one moved without the other.
+2.4 and 2.15 never moved at all, and neither did any of the nine unidentified
+properties. Home Assistant polls every 30 seconds, so it lands on whichever
+bundle is current and the fan entity looks like it is switching itself on and
+off every minute or two - visible in the recorder from 08:46 onwards.
+
+3.2/3.3 drift 24-25 across the same window but are *not* part of the bundle:
+two on-samples read 24 and one off-sample read 25, so that is ordinary drift.
+
+What produces it is unknown. No automatic cloud scene is enabled - the account's
+two `sceneType: 2` scenes are both `enabled: 0` - so the trigger is not there.
+The fan's own "Inteligentne ustawienia scen", stored on the device and absent
+from the scene API, has not been read and is the obvious next place to look.
+
 ### Identity fields
 
 The app's device-info screen lists model, MAC, S/N, DID, UID, firmware and a
