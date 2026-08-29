@@ -130,8 +130,17 @@ back as piid 1, and 2.10 as two entries for properties nobody asked about. This
 is the same signature 2.1 produces, where a write "acknowledged" as piid 0 and
 piid 3 left 2.1 untouched. Only 1.8 echoed its own address.
 
-1.8 is confirmed only as *accepting* a write of the value it already held;
-writing it a different value has not been tried, so what it does is still open.
+1.8 is genuinely writable, not merely tolerant of a no-op: `experiment.py
+<did> 1.8 1` moved it 0 -> 1, read it back, and restored it to 0, with the
+device online and every other property untouched throughout. What it *does* is
+still open - no other property responded in the four seconds the flag was held,
+so whatever it affects is not visible in the property store.
+
+It is also the only populated property in the whole of `siid 1`: piid 1-30 were
+read and only piid 8 came back with a value. That is where the MIoT convention
+would put Device Information, but the string fields a device-information service
+would carry are absent - which may only mean the REST store does not cache them,
+so it is not evidence either way.
 
 ### Two properties refuse writes, not one
 
