@@ -85,7 +85,7 @@ cloud integration.
 | `sensor` composite filter remaining | 4.2 | days, 180 = the six months the app quotes |
 | `sensor` pre-filter remaining | 4.8 | days until cleaning |
 | `binary_sensor` continuous monitoring | 2.15 | read-only, see above |
-| `sensor` property N.N | 11 others | raw, **disabled by default** |
+| `sensor` property N.N | 9 others | raw, **disabled by default** |
 
 ### Speed is not a setpoint, except in custom mode
 
@@ -113,8 +113,8 @@ Everywhere else it shows the live number, which the mode holds steady anyway.
 
 ### The raw property sensors
 
-Eleven of the device's twenty-eight properties are still unidentified. They are
-exposed raw, disabled by default, because eleven nameless numbers are clutter
+Nine of the device's twenty-eight properties are still unidentified. They are
+exposed raw, disabled by default, because nine nameless numbers are clutter
 until you are actually hunting one down.
 
 <img src="https://raw.githubusercontent.com/jrx-code/hassio-integration-dreame-fan/main/docs/media/diagnostics.png" width="42%">
