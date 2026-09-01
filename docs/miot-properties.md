@@ -284,3 +284,84 @@ costs another re-provisioning, so leave them alone.
 Reads go through the REST property store, which never caused trouble at any
 rate. Reserve the RPC channel for writes, batch them, and leave seconds between
 commands.
+
+## The vendor's own property map: the app plugin (2026-09-01)
+
+The device page for this fan is not part of the Dreamehome APK. It is a React
+Native bundle the app downloads per product, and the cloud hands out its URL to
+anyone logged in:
+
+    GET dreame-product/public/v1/productCategory/checkModel?model=dreame.fan.u2519
+        -> productId 11984, extensionId 2416
+    GET dreame-product/upgrades/appplugin?model=dreame.fan.u2519&os=1&appVer=2630
+        -> https://oss.iot.dreame.tech/pd/pg/extensions/2416/ali_dreame/android/
+           <hash>dreame.fan.u2519_137.zip   (version 137)
+
+`os` is numeric (0 = ios, 1 = android; both work) and `appVer` is the app version
+without dots - `2.6.3.0` is rejected as a format error, `2630` is accepted. The
+endpoint names the missing parameter in each error, so the shape can be found by
+asking. Version 137 matches the plugin version the app shows on screen, which the
+recon of 28.08 could not find anywhere in the API.
+
+Inside, `index.android.bundle` is plain JavaScript, 5.5 MB, and carries the
+vendor's own SIID/PIID map as `this.SIID` / `this.PIID[Props.<Name>]`
+assignments, plus every UI string in 25 languages.
+
+**The bundle covers a family, not just this fan.** Two different SIID 2 layouts
+appear, and this device matches neither exactly - it has 2.9 populated (only in
+the first) and 2.5, 2.6, 2.10, 2.11 populated (only in the second). So plugin
+names are hypotheses for our unknowns, not facts; what the bundle settles is the
+vocabulary and, through `Const`, which features this model has at all.
+
+| key | plugin name | status here |
+|---|---|---|
+| 1.8 | `PropDeviceLock` | matches "writable flag of unknown effect" |
+| 2.2 | `PropErrorCode` | plausible: reads 0 |
+| 2.7 | `PropWindDirectionHorizontal` | **confirmed boolean here**, see below |
+| 2.9 | `PropWindDirectionVerticalSync` | matches the app's "Synchronizacja kierunku nawiewu" |
+| 2.12 | `PropWindDirectionVerticalDislocation` | matches "Naprzemienny kierunek nawiewu" |
+| 6.4 | `PropTemperatureUnit` | plausible: reads 0 |
+| 6.12 | `PropAtmosphereLight` | we call it the LED display; same control |
+| 6.17 | `PropVoiceControl` | **conflicts** with our "key sound" label - unresolved |
+| 6.30 | `PropShakeSpeed` | matches, and the app calls it "Prędkość łopatek" |
+
+2.8 is `PropTemperatureCustomization` in one layout and `PropCommonTimer` in the
+other; neither can be right, because turning one blade off in the app moved 2.8
+from 3 to 2 and back. Direct observation wins.
+
+### There is no oscillation angle on this model
+
+The plugin's wind-direction page offers a row of angles - OFF / 45° / 90° / 180°
+/ 350° for horizontal, and 0° / 25° / 50° / 75° / 360 for vertical - which is why
+it looks like the fan should have one. Both rows are gated:
+
+    supportVerticalWindDirection: false,       _Models: 'dreame.airp.u2406'
+    supportHorizontalWindDirection350: false,  _Models: 'dreame.airp.u2406'
+
+`PropWindDirectionVertical` gets no piid assignment anywhere in the bundle, and
+`PropWindFollowMotion` (6.6), the "auto" option in that row, **does not exist on
+this device**: 6.5, 6.6, 6.9 and 6.15 all read back empty, unlike every key in
+`PROPERTY_KEYS`.
+
+Measured on the fan, 2026-09-01, twice - once stopped, once running - with the
+control writes of 0/1 accepted in the same session each time:
+
+| write to 2.7 | answer | value after |
+|---|---|---|
+| 45 | 80001 | unchanged |
+| 90 | 80001 | unchanged |
+| 180 | 80001 | unchanged |
+| 0 | code 0 | 0 |
+| 1 | code 0 | 1 |
+| 2 | code 0 | **0** |
+
+So 2.7 is two-state. Out-of-range values are refused rather than clamped, and 2
+is taken but stored as 0. The 80001 here is not the usual "not delivered": in-range
+writes on the same channel, seconds apart, went through and read back.
+
+What this device does expose of its two moving arms is therefore: oscillation on
+or off (2.7), which arms are running (2.8), whether the arms sweep together or
+split the sweep between them (2.9 and 2.12), and how fast they sweep (6.30). Any
+angle beyond that is set on the device itself; 2.6 (reads 3, refuses writes) is
+the only candidate for a read-only mirror of it, and testing that needs someone
+at the fan turning it.
