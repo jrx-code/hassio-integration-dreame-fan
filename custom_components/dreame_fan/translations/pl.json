@@ -15,15 +15,24 @@
         "data": {
           "did": "Wentylator"
         }
+      },
+      "reauth_confirm": {
+        "title": "Zaloguj się ponownie",
+        "description": "Chmura Dreamehome odrzuciła zapisane hasło konta {username}. Podaj aktualne.",
+        "data": {
+          "password": "Hasło"
+        }
       }
     },
     "error": {
       "cannot_connect": "Brak połączenia z chmurą Dreame.",
-      "invalid_auth": "Chmura Dreamehome odrzuciła te dane logowania."
+      "invalid_auth": "Chmura Dreamehome odrzuciła te dane logowania.",
+      "device_not_found": "Ten wentylator nie jest już przypisany do tego konta."
     },
     "abort": {
       "already_configured": "Ten wentylator jest już skonfigurowany.",
-      "no_supported_devices": "Na tym koncie nie ma obsługiwanego wentylatora."
+      "no_supported_devices": "Na tym koncie nie ma obsługiwanego wentylatora.",
+      "reauth_successful": "Dane logowania zaktualizowane."
     }
   },
   "services": {

@@ -15,15 +15,24 @@
         "data": {
           "did": "Fan"
         }
+      },
+      "reauth_confirm": {
+        "title": "Sign in again",
+        "description": "The Dreamehome cloud rejected the stored password for {username}. Enter the current one.",
+        "data": {
+          "password": "Password"
+        }
       }
     },
     "error": {
       "cannot_connect": "Cannot reach the Dreame cloud.",
-      "invalid_auth": "The Dreamehome cloud rejected these credentials."
+      "invalid_auth": "The Dreamehome cloud rejected these credentials.",
+      "device_not_found": "This fan is no longer bound to this account."
     },
     "abort": {
       "already_configured": "This fan is already set up.",
-      "no_supported_devices": "No supported fan is bound to this account."
+      "no_supported_devices": "No supported fan is bound to this account.",
+      "reauth_successful": "Credentials updated."
     }
   },
   "services": {

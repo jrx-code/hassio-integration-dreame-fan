@@ -1,7 +1,7 @@
 # Dreame Fan for Home Assistant
 
 [![Version](https://img.shields.io/github/manifest-json/v/jrx-code/hassio-integration-dreame-fan/main?filename=custom_components%2Fdreame_fan%2Fmanifest.json&label=version&color=slateblue&style=for-the-badge)](https://github.com/jrx-code/hassio-integration-dreame-fan/releases)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.6%2B-41BDF5.svg?logo=home-assistant&logoColor=white&style=for-the-badge)](https://www.home-assistant.io)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.11%2B-41BDF5.svg?logo=home-assistant&logoColor=white&style=for-the-badge)](https://www.home-assistant.io)
 [![License](https://img.shields.io/github/license/jrx-code/hassio-integration-dreame-fan?style=for-the-badge)](LICENSE)
 
 Home Assistant integration for the **Dreame MF10** bladeless circulation fan

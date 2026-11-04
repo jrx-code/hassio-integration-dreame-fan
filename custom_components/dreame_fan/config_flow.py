@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -93,4 +94,45 @@ class DreameFanConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="device",
             data_schema=vol.Schema({vol.Required(CONF_DID): vol.In(choices)}),
+        )
+
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> ConfigFlowResult:
+        """The cloud rejected the stored credentials during setup or a poll."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask for the password again and check it against the cloud."""
+        entry = self._get_reauth_entry()
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            cloud = DreameHomeCloud(
+                entry.data[CONF_USERNAME],
+                user_input[CONF_PASSWORD],
+                entry.data.get(CONF_COUNTRY, DEFAULT_COUNTRY),
+            )
+            try:
+                await self.hass.async_add_executor_job(cloud.login)
+                devices = await self.hass.async_add_executor_job(cloud.get_devices)
+            except DreameAuthError:
+                errors["base"] = "invalid_auth"
+            except DreameCloudError:
+                errors["base"] = "cannot_connect"
+            else:
+                if not any(str(d.get("did")) == str(entry.data[CONF_DID]) for d in devices):
+                    errors["base"] = "device_not_found"
+                else:
+                    return self.async_update_reload_and_abort(
+                        entry, data_updates={CONF_PASSWORD: user_input[CONF_PASSWORD]}
+                    )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({vol.Required(CONF_PASSWORD): str}),
+            description_placeholders={"username": entry.data[CONF_USERNAME]},
+            errors=errors,
         )
