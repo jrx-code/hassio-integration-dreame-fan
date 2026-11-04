@@ -1,7 +1,6 @@
 # Dreame Fan for Home Assistant
 
 [![Version](https://img.shields.io/github/manifest-json/v/jrx-code/hassio-integration-dreame-fan/main?filename=custom_components%2Fdreame_fan%2Fmanifest.json&label=version&color=slateblue&style=for-the-badge)](https://github.com/jrx-code/hassio-integration-dreame-fan/releases)
-[![HACS](https://img.shields.io/badge/HACS-custom-orange.svg?logo=HomeAssistantCommunityStore&logoColor=white&style=for-the-badge)](https://hacs.xyz)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.6%2B-41BDF5.svg?logo=home-assistant&logoColor=white&style=for-the-badge)](https://www.home-assistant.io)
 [![License](https://img.shields.io/github/license/jrx-code/hassio-integration-dreame-fan?style=for-the-badge)](LICENSE)
 
@@ -44,9 +43,15 @@ itself now works, through a different mechanism - see
 
 ### HACS
 
-1. HACS → three-dot menu → **Custom repositories**
-2. Add `https://github.com/jrx-code/hassio-integration-dreame-fan`, category **Integration**
-3. Install **Dreame Fan**, then restart Home Assistant
+1. HACS (or the Marketplace on Home Assistant 2026.11+) → search for **Dreame Fan** and
+   download it.
+2. Restart Home Assistant.
+
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jrx-code&repository=hassio-integration-dreame-fan&category=integration)
+
+If the search finds nothing (the default-store submission is still pending), add it by hand:
+HACS → three-dot menu → **Custom repositories** → `https://github.com/jrx-code/hassio-integration-dreame-fan`,
+type **Integration**.
 
 ### Manual
 
