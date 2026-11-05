@@ -1,6 +1,9 @@
 {
   "domain": "dreame_fan",
   "name": "Dreame Fan",
+  "categories": [
+    "climate.fans_ventilation"
+  ],
   "codeowners": [
     "@jrx-code"
   ],
@@ -10,5 +13,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/jrx-code/hassio-integration-dreame-fan/issues",
   "requirements": [],
-  "version": "0.5.2"
+  "version": "0.5.3"
 }
