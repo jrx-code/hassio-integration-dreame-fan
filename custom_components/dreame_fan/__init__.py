@@ -21,6 +21,7 @@ from .const import (
     SERVICE_SET_PROPERTY,
 )
 from .coordinator import DreameFanCoordinator
+from .device_entry import config_entry_ids_for_device
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
@@ -81,6 +82,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: DreameFanConfigEntry) -
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
+
 def _async_register_services(hass: HomeAssistant) -> None:
     """Register the raw property write service, once."""
     if hass.services.has_service(DOMAIN, SERVICE_SET_PROPERTY):
@@ -95,7 +97,7 @@ def _async_register_services(hass: HomeAssistant) -> None:
             if device is None:
                 raise ValueError(f"Unknown device {device_id}")
 
-            for entry_id in device.config_entries:
+            for entry_id in config_entry_ids_for_device(device):
                 entry = hass.config_entries.async_get_entry(entry_id)
                 if entry and entry.domain == DOMAIN and hasattr(entry, "runtime_data"):
                     await entry.runtime_data.async_set_property(
