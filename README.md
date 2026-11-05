@@ -43,13 +43,15 @@ itself now works, through a different mechanism - see
 
 ### HACS
 
+The integration is in the HACS default store.
+
 1. HACS (or the Marketplace on Home Assistant 2026.11+) → search for **Dreame Fan** and
    download it.
 2. Restart Home Assistant.
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jrx-code&repository=hassio-integration-dreame-fan&category=integration)
 
-If the search finds nothing (the default-store submission is still pending), add it by hand:
+If the search finds nothing, add it by hand:
 HACS → three-dot menu → **Custom repositories** → `https://github.com/jrx-code/hassio-integration-dreame-fan`,
 type **Integration**.
 
